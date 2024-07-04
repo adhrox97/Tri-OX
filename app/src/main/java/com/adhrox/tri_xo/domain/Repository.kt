@@ -11,4 +11,6 @@ interface Repository {
     fun joinToGame(gameId: String): Flow<GameModel?>
 
     fun updateGame(gameData: GameData)
+
+    suspend fun verifyGame(gameId: String): Boolean
 }

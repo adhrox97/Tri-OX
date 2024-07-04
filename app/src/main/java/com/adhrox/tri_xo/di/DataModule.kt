@@ -2,6 +2,7 @@ package com.adhrox.tri_xo.di
 
 import com.adhrox.tri_xo.data.network.RepositoryImpl
 import com.adhrox.tri_xo.domain.Repository
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -23,4 +24,8 @@ object DataModule {
     fun provideRepository(firebaseFirestore: FirebaseFirestore): Repository {
         return RepositoryImpl(firebaseFirestore)
     }
+
+    @Singleton
+    @Provides
+    fun provideFirebaseAuth() = FirebaseAuth.getInstance()
 }

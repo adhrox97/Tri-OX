@@ -1,5 +1,7 @@
 package com.adhrox.tri_xo.ui.home
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -8,7 +10,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,18 +18,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,9 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,6 +46,7 @@ import com.adhrox.tri_xo.R
 import com.adhrox.tri_xo.ui.theme.Accent
 import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.Orange1
+import kotlinx.coroutines.coroutineScope
 
 @Composable
 fun HomeScreen(
@@ -54,6 +54,18 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     navigateToGame: (String, String, Boolean) -> Unit
 ) {
+    val gameState: GameState by homeViewModel.gameState.collectAsState()
+
+    gameState.found?.let { found ->
+        val message = if (found) {
+            homeViewModel.onJoinGame(gameState.gameId, navigateToGame)
+            "Encontrado"
+        } else {
+            "Juego no encontrado"
+        }
+        toastMessage(LocalContext.current, message)
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -63,7 +75,7 @@ fun HomeScreen(
         Header()
         Body(
             onCrateGame = { homeViewModel.onCreateGame(navigateToGame) },
-            onJoinGame = { gameId -> homeViewModel.onJoinGame(gameId, navigateToGame) }
+            verifyGame = { gameId -> homeViewModel.verifyGame(gameId) }
         )
     }
 }
@@ -81,7 +93,7 @@ fun Header() {
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.applogo),
+                painter = painterResource(id = R.drawable.ic_applogo),
                 contentDescription = "logo",
                 modifier = Modifier
                     .fillMaxSize()
@@ -98,7 +110,7 @@ fun Header() {
 }
 
 @Composable
-fun Body(onCrateGame: () -> Unit, onJoinGame: (String) -> Unit) {
+fun Body(onCrateGame: () -> Unit, verifyGame: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,7 +136,7 @@ fun Body(onCrateGame: () -> Unit, onJoinGame: (String) -> Unit) {
                 AnimatedContent(targetState = createGame, label = "") {
                     when (it) {
                         true -> CreateGame(onCrateGame)
-                        false -> JoinGame(onJoinGame)
+                        false -> JoinGame(verifyGame)
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -144,7 +156,7 @@ fun CreateGame(onCrateGame: () -> Unit) {
 }
 
 @Composable
-fun JoinGame(onJoinGame: (String) -> Unit) {
+fun JoinGame(verifyGame: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -161,7 +173,9 @@ fun JoinGame(onJoinGame: (String) -> Unit) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Button(
-            onClick = { onJoinGame(text) },
+            onClick = {
+                verifyGame(text)
+            },
             enabled = text.isNotBlank(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Orange1,
@@ -171,4 +185,8 @@ fun JoinGame(onJoinGame: (String) -> Unit) {
             Text(text = "Unirse a juego", color = Accent)
         }
     }
+}
+
+private fun toastMessage(context: Context, msg: String){
+    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
 }

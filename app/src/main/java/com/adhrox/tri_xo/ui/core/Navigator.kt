@@ -12,11 +12,11 @@ import com.adhrox.tri_xo.ui.game.GameScreen
 import com.adhrox.tri_xo.ui.home.HomeScreen
 
 @Composable
-fun ContentWrapper(navigationController: NavHostController, innerPadding: Modifier = Modifier) {
+fun ContentWrapper(navigationController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController = navigationController, startDestination = Home.route) {
         composable(Home.route) {
             HomeScreen(
-                modifier = innerPadding,
+                modifier = modifier,
                 navigateToGame = { gameId, userId, owner ->
                     navigationController.navigate(
                         Game.createRoute(gameId, userId, owner)
@@ -31,11 +31,11 @@ fun ContentWrapper(navigationController: NavHostController, innerPadding: Modifi
             )
         ) {
             GameScreen(
-                modifier = innerPadding,
+                modifier = modifier,
                 gameId = it.arguments?.getString("gameId").orEmpty(),
                 userId = it.arguments?.getString("userId").orEmpty(),
                 owner = it.arguments?.getBoolean("owner") ?: false,
-                navigateToHome = { navigationController.popBackStack() }
+                navigateToHome = { navigationController.popBackStack(route = Home.route, inclusive = false) }
             )
         }
     }

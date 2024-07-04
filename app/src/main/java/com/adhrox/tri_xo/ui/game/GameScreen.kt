@@ -1,8 +1,12 @@
 package com.adhrox.tri_xo.ui.game
 
+import android.content.Context
+import android.content.Intent
 import android.widget.Space
 import android.widget.Toast
+import androidx.annotation.FloatRange
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +34,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
@@ -40,13 +47,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.adhrox.tri_xo.data.network.model.GameData
 import com.adhrox.tri_xo.domain.model.GameModel
+import com.adhrox.tri_xo.domain.model.PlayerModel
 import com.adhrox.tri_xo.domain.model.PlayerType
 import com.adhrox.tri_xo.ui.theme.Accent
 import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.BlueLink
 import com.adhrox.tri_xo.ui.theme.Orange1
 import com.adhrox.tri_xo.ui.theme.Orange2
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun GameScreen(
@@ -57,14 +68,14 @@ fun GameScreen(
     owner: Boolean,
     navigateToHome: () -> Unit
 ) {
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(key1 = false) {
         gameViewModel.joinToGame(gameId, userId, owner)
     }
 
     val game: GameModel? by gameViewModel.game.collectAsState()
-    val winner: PlayerType? by gameViewModel.winner.collectAsState()
+    val winner: GameStatus by gameViewModel.winner.collectAsState()
 
-    if (winner != null) {
+    if (winner !is GameStatus.Ongoing) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -80,38 +91,44 @@ fun GameScreen(
                 border = BorderStroke(2.dp, Orange1),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(24.dp)
-                ) {
-                    Text(
-                        text = "FELICIDADES!",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Orange1
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    val currentWinner =
-                        if (winner == PlayerType.FirstPlayer) "Player1" else "Player2"
-                    Text(
-                        text = "Ha ganado el jugador:",
-                        fontSize = 22.sp,
-                        color = Accent
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = currentWinner,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Orange2
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
 
-                    Button(
-                        onClick = { navigateToHome() },
-                        colors = ButtonDefaults.buttonColors(containerColor = Orange1)
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(24.dp)
                     ) {
-                        Text(text = "Volver al inicio", color = Accent)
+
+                        val gameStatusStr = winner.status
+
+                        if (winner is GameStatus.Won){
+                            Text(
+                                text = "FELICIDADES!",
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Orange1
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = gameStatusStr,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Orange2
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Button(
+                            onClick = { gameViewModel.restartGame() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Orange1)
+                        ) {
+                            Text(text = "Revancha", color = Accent)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { navigateToHome() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Orange2)
+                        ) {
+                            Text(text = "Volver al inicio", color = Accent)
+                        }
                     }
                 }
             }
@@ -144,6 +161,7 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
                     Toast
                         .makeText(context, "Copiado", Toast.LENGTH_SHORT)
                         .show()
+                    shareId(context, game.gameId)
                 })
 
         val status = if (game.isGameReady) {
@@ -161,7 +179,7 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
             if (!game.isMyTurn || !game.isGameReady) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(18.dp),
-                    trackColor = Orange1
+                    trackColor = Orange1,
                 )
             }
         }
@@ -204,4 +222,15 @@ fun GameItem(playerType: PlayerType, onItemSelected: () -> Unit) {
             )
         }
     }
+}
+
+private fun shareId(context: Context, idGame: String){
+    val sentIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, idGame)
+        type = "text/plain"
+    }
+
+    val shareIntent = Intent.createChooser(sentIntent, "Compartir ID con...")
+    context.startActivity(shareIntent)
 }

@@ -68,8 +68,12 @@ dependencies {
     //Firebase
     implementation(platform("com.google.firebase:firebase-bom:$firebase_version"))
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
     //implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
+
+    //Dependencia para agregar autenticacion por cuenta de google
+    implementation(libs.play.services.auth)
 
     //DaggerHilt
     implementation(libs.hilt.android)
