@@ -1,25 +1,40 @@
 package com.adhrox.tri_xo.data.network
 
-import android.util.Log
+import com.adhrox.tri_xo.data.dto.UserDto
 import com.adhrox.tri_xo.data.network.model.GameData
+import com.adhrox.tri_xo.data.network.model.UserData
+import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
+import com.adhrox.tri_xo.domain.exceptions.UserAlreadyExistsException
 import com.adhrox.tri_xo.domain.model.GameModel
+import com.adhrox.tri_xo.domain.model.UserModel
 import com.adhrox.tri_xo.domain.model.toModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.snapshots
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.withIndex
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
+import javax.inject.Provider
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
-class RepositoryImpl @Inject constructor(private val db: FirebaseFirestore): Repository {
+class RepositoryImpl @Inject constructor(
+    private val db: FirebaseFirestore,
+    private val authServiceProvider: Provider<AuthService>
+) : Repository {
 
-    companion object{
+    companion object {
         private const val PATH_GAMES = "games"
+        private const val PATH_USERS = "users"
     }
-    override fun createGame(gameData: GameData): String{
+
+    private val authService: AuthService by lazy { authServiceProvider.get() }
+
+    override fun createGame(gameData: GameData): String {
         val customId = getCustomId()
         val newGame = gameData.copy(gameId = customId)
         db.collection(PATH_GAMES).document(customId).set(newGame)
@@ -40,17 +55,66 @@ class RepositoryImpl @Inject constructor(private val db: FirebaseFirestore): Rep
         return db
             .collection(PATH_GAMES)
             .document(gameId)
-            .snapshots().first().exists()
+            .get()
+            .await()
+            .exists()
     }
 
     override fun updateGame(gameData: GameData) {
-        if (gameData.gameId != null){
+        if (gameData.gameId != null) {
             db.collection(PATH_GAMES).document(gameData.gameId).set(gameData)
         }
     }
 
-    private fun getCustomId(): String{
+    override fun createUser(
+        user: UserDto,
+        cancellableContinuation: CancellableContinuation<Boolean>
+    ) {
+        db.collection(PATH_USERS).document(user.userName).set(user)
+            .addOnSuccessListener {
+                cancellableContinuation.resume(true)
+            }
+            .addOnFailureListener {
+                cancellableContinuation.resumeWithException(it)
+            }
+    }
+
+    override suspend fun getCurrentUserModel(): UserModel {
+        val currentUser = authService.getCurrentUser()
+        val query = db.collection(PATH_USERS).whereEqualTo("uid", currentUser!!.uid)
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            query.get()
+                .addOnSuccessListener {
+                    val userModel = it.first().toObject(UserData::class.java).toModel()
+                    cancellableContinuation.resume(userModel)
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+    }
+
+    private fun getCustomId(): String {
         return Date().time.toString()
     }
 
+    override suspend fun isUserAlreadyExist(
+        userName: String
+    ) {
+        return suspendCancellableCoroutine { cancellableContinuation ->
+            db.collection(PATH_USERS)
+                .document(userName)
+                .get()
+                .addOnSuccessListener {
+                    if (it.exists()) {
+                        cancellableContinuation.resumeWithException(UserAlreadyExistsException())
+                    } else {
+                        cancellableContinuation.resume(Unit)
+                    }
+                }
+                .addOnFailureListener {
+                    cancellableContinuation.resumeWithException(it)
+                }
+        }
+    }
 }

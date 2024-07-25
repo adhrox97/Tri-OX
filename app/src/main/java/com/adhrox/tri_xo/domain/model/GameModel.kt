@@ -23,12 +23,12 @@ fun GameData.toModel() = GameModel(
 )
 
 data class PlayerModel(
-    val userId: String? = Calendar.getInstance().timeInMillis.hashCode().toString(),
+    val userName: String? = null,//Calendar.getInstance().timeInMillis.hashCode().toString(),
     val playerType: PlayerType
 )
 
 fun PlayerData.toModel() = PlayerModel(
-    userId = userId,
+    userName = userName,
     playerType = PlayerType.getPlayerById(playerType)
 )
 

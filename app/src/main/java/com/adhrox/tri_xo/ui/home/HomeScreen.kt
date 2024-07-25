@@ -21,12 +21,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +48,7 @@ import com.adhrox.tri_xo.R
 import com.adhrox.tri_xo.ui.theme.Accent
 import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.Orange1
+import com.adhrox.tri_xo.ui.theme.Orange2
 import kotlinx.coroutines.coroutineScope
 
 @Composable
@@ -54,6 +57,10 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     navigateToGame: (String, String, Boolean) -> Unit
 ) {
+    LaunchedEffect(key1 = false) {
+        homeViewModel.getCurrentUserModel()
+    }
+
     val gameState: GameState by homeViewModel.gameState.collectAsState()
 
     gameState.found?.let { found ->
@@ -72,17 +79,29 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Background)
     ) {
-        Header()
+        Header(gameState.user.userName)
         Body(
+            loadingState = gameState.isLoading,
             onCrateGame = { homeViewModel.onCreateGame(navigateToGame) },
             verifyGame = { gameId -> homeViewModel.verifyGame(gameId) }
         )
     }
+    if (gameState.isLoading){
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(42.dp),
+                trackColor = Orange1,
+                color = Orange2,
+                strokeWidth = 6.dp
+            )
+        }
+    }
 }
 
 @Composable
-fun Header() {
+fun Header(userName: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Bienvenido $userName", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(24.dp))
         Box(
             modifier = Modifier
@@ -110,7 +129,7 @@ fun Header() {
 }
 
 @Composable
-fun Body(onCrateGame: () -> Unit, verifyGame: (String) -> Unit) {
+fun Body(loadingState: Boolean,onCrateGame: () -> Unit, verifyGame: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,6 +146,7 @@ fun Body(onCrateGame: () -> Unit, verifyGame: (String) -> Unit) {
                 Switch(
                     checked = createGame,
                     onCheckedChange = { createGame = it },
+                    enabled = !loadingState,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Orange1,
                         checkedTrackColor = Orange1.copy(alpha = 0.54f),
@@ -135,7 +155,7 @@ fun Body(onCrateGame: () -> Unit, verifyGame: (String) -> Unit) {
                 )
                 AnimatedContent(targetState = createGame, label = "") {
                     when (it) {
-                        true -> CreateGame(onCrateGame)
+                        true -> CreateGame(loadingState, onCrateGame)
                         false -> JoinGame(verifyGame)
                     }
                 }
@@ -146,9 +166,10 @@ fun Body(onCrateGame: () -> Unit, verifyGame: (String) -> Unit) {
 }
 
 @Composable
-fun CreateGame(onCrateGame: () -> Unit) {
+fun CreateGame(loadingState: Boolean, onCrateGame: () -> Unit) {
     Button(
         onClick = { onCrateGame() },
+        enabled = !loadingState,
         colors = ButtonDefaults.buttonColors(containerColor = Orange1)
     ) {
         Text(text = "Crear juego", color = Accent)

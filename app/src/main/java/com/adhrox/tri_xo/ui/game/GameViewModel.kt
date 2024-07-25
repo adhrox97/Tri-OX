@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GameViewModel @Inject constructor(private val repository: Repository): ViewModel() {
 
-    private lateinit var userId: String
+    private lateinit var userName: String
 
     private val _game = MutableStateFlow<GameModel?>(null)
     val game: StateFlow<GameModel?> = _game
@@ -28,8 +28,8 @@ class GameViewModel @Inject constructor(private val repository: Repository): Vie
     private val _winner = MutableStateFlow<GameStatus>(GameStatus.Ongoing())
     val winner: StateFlow<GameStatus> = _winner
 
-    fun joinToGame(gameId: String, userId: String, owner: Boolean) {
-        this.userId = userId
+    fun joinToGame(gameId: String, userName: String, owner: Boolean) {
+        this.userName = userName
         if (owner){
             join(gameId)
         }else{
@@ -52,7 +52,7 @@ class GameViewModel @Inject constructor(private val repository: Repository): Vie
             repository.joinToGame(gameId).take(1).collect{
                 var result = it
                 if (result != null){
-                    result = result.copy(player2 = PlayerModel(userId, PlayerType.SecondPlayer))
+                    result = result.copy(player2 = PlayerModel(userName, PlayerType.SecondPlayer))
                     repository.updateGame(result.toData())
                 }
             }
@@ -61,7 +61,7 @@ class GameViewModel @Inject constructor(private val repository: Repository): Vie
     }
 
     private fun isMyTurn(playerTurn: PlayerModel): Boolean{
-        return playerTurn.userId == userId
+        return playerTurn.userName == userName
     }
 
     fun onItemSelected(position: Int) {
@@ -101,8 +101,8 @@ class GameViewModel @Inject constructor(private val repository: Repository): Vie
         }
 
         return when{
-            checkWin(PlayerType.FirstPlayer) -> GameStatus.Won(PlayerType.FirstPlayer)
-            checkWin(PlayerType.SecondPlayer) -> GameStatus.Won(PlayerType.SecondPlayer)
+            checkWin(PlayerType.FirstPlayer) -> GameStatus.Won(_game.value?.player1?.userName)
+            checkWin(PlayerType.SecondPlayer) -> GameStatus.Won(_game.value?.player2?.userName)
             board.all{ it != PlayerType.Empty } -> GameStatus.Tie()
             else -> GameStatus.Ongoing()
         }
@@ -117,19 +117,19 @@ class GameViewModel @Inject constructor(private val repository: Repository): Vie
 
     private fun getPlayer(): PlayerType?{
         return when{
-            game.value?.player1?.userId == userId -> PlayerType.FirstPlayer
-            game.value?.player2?.userId == userId -> PlayerType.SecondPlayer
+            game.value?.player1?.userName == userName -> PlayerType.FirstPlayer
+            game.value?.player2?.userName == userName -> PlayerType.SecondPlayer
             else -> null
         }
     }
 
     private fun getEnemyPlayer(): PlayerModel?{
-        return if (game.value?.player1?.userId == userId) game.value?.player2 else game.value?.player1
+        return if (game.value?.player1?.userName == userName) game.value?.player2 else game.value?.player1
     }
 }
 
-sealed class GameStatus(val player: PlayerType? = null, val status: String = "") {
-    class Won(player: PlayerType?, status: String = "Ganador $player"): GameStatus(player, status)
+sealed class GameStatus(val player: String? = null, val status: String = "") {
+    class Won(player: String?, status: String = "Ganador $player"): GameStatus(player, status)
     class Tie(status: String = "Empate") : GameStatus(status = status)
     class Ongoing(status: String = "En progreso") : GameStatus(status = status)
 }

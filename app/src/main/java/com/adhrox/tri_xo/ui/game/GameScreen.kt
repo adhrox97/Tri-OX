@@ -64,12 +64,12 @@ fun GameScreen(
     modifier: Modifier = Modifier,
     gameViewModel: GameViewModel = hiltViewModel(),
     gameId: String,
-    userId: String,
+    userName: String,
     owner: Boolean,
     navigateToHome: () -> Unit
 ) {
     LaunchedEffect(key1 = false) {
-        gameViewModel.joinToGame(gameId, userId, owner)
+        gameViewModel.joinToGame(gameId, userName, owner)
     }
 
     val game: GameModel? by gameViewModel.game.collectAsState()
