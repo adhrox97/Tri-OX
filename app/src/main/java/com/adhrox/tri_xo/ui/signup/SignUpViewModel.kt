@@ -24,7 +24,7 @@ class SignUpViewModel @Inject constructor(private val authService: AuthService, 
     val uiState: StateFlow<AddNewUser> = _uiState
 
     fun onUserChange(user: String){
-        _uiState.update { it.copy(user = user) }
+        updateUserState(user)
     }
 
     fun onEmailChange(email: String){
@@ -88,6 +88,15 @@ class SignUpViewModel @Inject constructor(private val authService: AuthService, 
             )
         }
     }
+
+    private fun updateUserState(user: String){
+        _uiState.update {
+            it.copy(
+                user = user,
+                isValidUserName = !(user.contains("\\") || user.contains("-"))
+            )
+        }
+    }
 }
 
 data class AddNewUser(
@@ -96,8 +105,9 @@ data class AddNewUser(
     val password: String = "",
     val repeatPassword: String = "",
     val isPasswordMatch: Boolean = false,
+    val isValidUserName: Boolean = true,
     val isLoading: Boolean = false,
     val error: String? = null
 ){
-    fun isValidUser() = user.isNotBlank() && email.isNotBlank() && password.isNotBlank() && isPasswordMatch
+    fun isValidUser() = user.isNotBlank() && email.isNotBlank() && password.isNotBlank() && isPasswordMatch && isValidUserName
 }

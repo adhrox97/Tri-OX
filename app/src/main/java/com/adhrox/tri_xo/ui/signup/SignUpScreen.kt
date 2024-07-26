@@ -26,7 +26,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,19 +35,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
-import com.adhrox.tri_xo.ui.game.GameStatus
 import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.Orange1
 import com.adhrox.tri_xo.ui.theme.Orange2
@@ -138,6 +132,9 @@ fun SignUpScreen(
                     focusedLabelColor = Color.White
                 )
             )
+            if (!uiStatus.isValidUserName){
+                Text(text = "La Nombre de usuario no debe contener los simbolos \"\\\" ó \"-\"", color = Color.Red)
+            }
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = email,
