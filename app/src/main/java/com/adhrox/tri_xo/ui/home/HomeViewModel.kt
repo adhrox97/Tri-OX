@@ -6,6 +6,7 @@ import com.adhrox.tri_xo.data.network.model.GameData
 import com.adhrox.tri_xo.data.network.model.PlayerData
 import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
+import com.adhrox.tri_xo.domain.model.GameVerificationResult
 import com.adhrox.tri_xo.domain.model.UserModel
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,22 +46,18 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
     }
 
     fun onJoinGame(gameId: String, navigateToGame: (String, String, Boolean) -> Unit) {
-        val owner = false
-        _gameState.update { it.copy(gameId = "", found = null) }
-        navigateToGame(gameId, _gameState.value.user.userName, owner)
-    }
-
-    fun verifyGame(gameId: String){
         viewModelScope.launch {
-            val result = async { repository.verifyGame(gameId) }.await()
-            if (result){
-                _gameState.update { it.copy(gameId = gameId, found = true) }
-            }else{
-                _gameState.update { it.copy(gameId = "", found = null) }
-                delay(50)
-                _gameState.update { it.copy(found = false) }
+            verifyGame(gameId)
+            if (_gameState.value.gameVerification == GameVerificationResult.GameFound){
+                val owner = false
+                navigateToGame(gameId, _gameState.value.user.userName, owner)
             }
         }
+    }
+
+    private suspend fun verifyGame(gameId: String){
+        val result = repository.verifyGame(gameId)
+        _gameState.update { it.copy(gameVerification = result) }
     }
 
     /*private fun createUserId(): String{
@@ -68,7 +65,7 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
     }*/
 
     private fun createNewGame(): GameData {
-        val currentPlayer = PlayerData(userName = _gameState.value.user.userName, playerType = 2)
+        val currentPlayer = PlayerData(userName = _gameState.value.user.userName, playerType = 2, tryAgain = false)
 
         return GameData(
             board = List(9) { 0 },
@@ -78,14 +75,17 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
         )
     }
 
+    fun resetGameVerificationState(){
+        _gameState.update { it.copy(gameVerification = null) }
+    }
+
     private fun showLoading(state: Boolean){
         _gameState.update { it.copy(isLoading = state) }
     }
 }
 
 data class GameState(
-    val gameId: String = "",
-    val found: Boolean? = null,
-    val user: UserModel = UserModel("", ""),
+    val gameVerification: GameVerificationResult? = null,
+    val user: UserModel = UserModel("", "", mutableMapOf()),
     val isLoading: Boolean = false
 )

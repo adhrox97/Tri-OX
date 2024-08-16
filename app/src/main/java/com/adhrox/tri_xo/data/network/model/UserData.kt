@@ -4,4 +4,5 @@ data class UserData(
     val uid: String? = null,
     val userName: String? = null,
     val email: String? = null,
+    val gamesInfo: Map<String, Int>? = null
 )

@@ -2,15 +2,13 @@ package com.adhrox.tri_xo.ui.game
 
 import android.content.Context
 import android.content.Intent
-import android.widget.Space
 import android.widget.Toast
-import androidx.annotation.FloatRange
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,36 +26,34 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ProgressIndicatorDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adhrox.tri_xo.data.network.model.GameData
+import com.adhrox.tri_xo.R
 import com.adhrox.tri_xo.domain.model.GameModel
-import com.adhrox.tri_xo.domain.model.PlayerModel
+import com.adhrox.tri_xo.domain.model.GameStatus
 import com.adhrox.tri_xo.domain.model.PlayerType
 import com.adhrox.tri_xo.ui.theme.Accent
 import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.BlueLink
 import com.adhrox.tri_xo.ui.theme.Orange1
 import com.adhrox.tri_xo.ui.theme.Orange2
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @Composable
 fun GameScreen(
@@ -73,68 +69,25 @@ fun GameScreen(
     }
 
     val game: GameModel? by gameViewModel.game.collectAsState()
-    val winner: GameStatus by gameViewModel.winner.collectAsState()
+    val gameStatus: GameStatus by gameViewModel.gameStatus.collectAsState()
 
-    if (winner !is GameStatus.Ongoing) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Background),
-            contentAlignment = Alignment.Center
+    if (gameStatus !is GameStatus.Ongoing) {
+        EndGameScreen(
+            gameStatus,
+            arrayOf(game?.player1!!.tryAgain, game?.player2!!.tryAgain,),
+            navigateToHome,
+
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Background),
-                border = BorderStroke(2.dp, Orange1),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(24.dp)
-                    ) {
-
-                        val gameStatusStr = winner.status
-
-                        if (winner is GameStatus.Won){
-                            Text(
-                                text = "FELICIDADES!",
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Orange1
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = gameStatusStr,
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Orange2
-                        )
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Button(
-                            onClick = { gameViewModel.restartGame() },
-                            colors = ButtonDefaults.buttonColors(containerColor = Orange1)
-                        ) {
-                            Text(text = "Revancha", color = Accent)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(
-                            onClick = { navigateToHome() },
-                            colors = ButtonDefaults.buttonColors(containerColor = Orange2)
-                        ) {
-                            Text(text = "Volver al inicio", color = Accent)
-                        }
-                    }
-                }
-            }
+            gameViewModel.changeTryAgainStatus(owner)
         }
     } else {
-        Board(modifier, game, onItemSelected = { position -> gameViewModel.onItemSelected(position) })
+        Board(
+            modifier,
+            game,
+            onItemSelected = {
+                position -> gameViewModel.onItemSelected(position)
+            }
+        )
     }
 }
 
@@ -224,6 +177,83 @@ fun GameItem(playerType: PlayerType, onItemSelected: () -> Unit) {
     }
 }
 
+@Composable
+fun EndGameScreen(
+    gameStatus: GameStatus,
+    playersTry: Array<Boolean>,
+    navigateToHome: () -> Unit,
+    changeTryAgainStatus: () -> Unit
+){
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Background),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Background),
+            border = BorderStroke(2.dp, Orange1),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    val gameStatusStr = gameStatus.status
+                    val tryAgainResources = getTryAgainResources(playersTry)
+
+                    if (gameStatus is GameStatus.Won){
+                        Text(
+                            text = "FELICIDADES!",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Orange1
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = gameStatusStr,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Orange2
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Button(
+                        onClick = { changeTryAgainStatus() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Orange1)
+                    ) {
+                        Text(text = "Revancha", color = Accent)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            painter = painterResource(id = tryAgainResources[0].first),
+                            contentDescription = "",
+                            tint = tryAgainResources[0].second
+
+                        )
+                        Icon(
+                            painter = painterResource(id = tryAgainResources[1].first),
+                            contentDescription = "",
+                            tint = tryAgainResources[1].second
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { navigateToHome() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Orange2)
+                    ) {
+                        Text(text = "Volver al inicio", color = Accent)
+                    }
+                }
+            }
+        }
+    }
+}
+
 private fun shareId(context: Context, idGame: String){
     val sentIntent = Intent().apply {
         action = Intent.ACTION_SEND
@@ -233,4 +263,14 @@ private fun shareId(context: Context, idGame: String){
 
     val shareIntent = Intent.createChooser(sentIntent, "Compartir ID con...")
     context.startActivity(shareIntent)
+}
+
+private fun getTryAgainResources(wantTryArray: Array<Boolean>): List<Pair<Int, Color>> {
+    return wantTryArray.map {
+        if (it) {
+            R.drawable.ic_check to Color.Green
+        } else {
+            R.drawable.ic_close to Color.Gray
+        }
+    }
 }

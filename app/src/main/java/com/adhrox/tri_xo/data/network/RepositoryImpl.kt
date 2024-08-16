@@ -1,12 +1,17 @@
 package com.adhrox.tri_xo.data.network
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import com.adhrox.tri_xo.data.dto.UserDto
 import com.adhrox.tri_xo.data.network.model.GameData
+import com.adhrox.tri_xo.data.network.model.PlayerData
 import com.adhrox.tri_xo.data.network.model.UserData
 import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
 import com.adhrox.tri_xo.domain.exceptions.UserAlreadyExistsException
 import com.adhrox.tri_xo.domain.model.GameModel
+import com.adhrox.tri_xo.domain.model.GameVerificationResult
+import com.adhrox.tri_xo.domain.model.GameVerificationResult.*
 import com.adhrox.tri_xo.domain.model.UserModel
 import com.adhrox.tri_xo.domain.model.toModel
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,6 +35,9 @@ class RepositoryImpl @Inject constructor(
     companion object {
         private const val PATH_GAMES = "games"
         private const val PATH_USERS = "users"
+        private const val FIELD_GAMES_INFO = "gamesInfo"
+        private const val FIELD_PLAYER1 = "player1"
+        private const val FIELD_PLAYER2 = "player2"
     }
 
     private val authService: AuthService by lazy { authServiceProvider.get() }
@@ -51,18 +59,32 @@ class RepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun verifyGame(gameId: String): Boolean {
-        return db
+    override suspend fun verifyGame(gameId: String): GameVerificationResult {
+
+        val documentSnapshot = db
             .collection(PATH_GAMES)
             .document(gameId)
             .get()
             .await()
-            .exists()
+
+        return when {
+            !documentSnapshot.exists() -> GameNotFound
+            documentSnapshot.get("player2") == null -> GameFound
+            else -> GameFull
+        }
     }
 
     override fun updateGame(gameData: GameData) {
         if (gameData.gameId != null) {
             db.collection(PATH_GAMES).document(gameData.gameId).set(gameData)
+        }
+    }
+
+    override fun updateTryAgain(gameId: String, player: PlayerData?) {
+        val reference = db.collection(PATH_GAMES).document(gameId)
+        player?.let {
+            val field = if (it.playerType == 2) FIELD_PLAYER1 else FIELD_PLAYER2
+            reference.update(field, it)
         }
     }
 
@@ -92,6 +114,15 @@ class RepositoryImpl @Inject constructor(
                     cancellableContinuation.resumeWithException(it)
                 }
         }
+    }
+
+    override fun updateStatsUser(userName: String, gameInfo: Map<String, Int>) {
+        val userRef = db.collection(PATH_USERS).document(userName)
+
+        userRef
+            .update(FIELD_GAMES_INFO, gameInfo)
+            .addOnSuccessListener { Log.d(TAG, "Documento actualizado") }
+            .addOnFailureListener { e -> Log.w(TAG, "Error al actualizar documento", e) }
     }
 
     private fun getCustomId(): String {

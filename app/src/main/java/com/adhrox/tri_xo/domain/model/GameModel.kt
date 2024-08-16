@@ -12,7 +12,15 @@ data class GameModel(
     val gameId: String,
     val isGameReady: Boolean = false,
     val isMyTurn: Boolean = false
-)
+) {
+    fun canTryAgain(): Boolean{
+        return if (player2 != null){
+            player1.tryAgain && player2.tryAgain
+        } else {
+            false
+        }
+    }
+}
 
 fun GameData.toModel() = GameModel(
     board = board?.map { PlayerType.getPlayerById(it) } ?: mutableListOf(),
@@ -24,12 +32,14 @@ fun GameData.toModel() = GameModel(
 
 data class PlayerModel(
     val userName: String? = null,//Calendar.getInstance().timeInMillis.hashCode().toString(),
-    val playerType: PlayerType
+    val playerType: PlayerType,
+    val tryAgain: Boolean
 )
 
 fun PlayerData.toModel() = PlayerModel(
     userName = userName,
-    playerType = PlayerType.getPlayerById(playerType)
+    playerType = PlayerType.getPlayerById(playerType),
+    tryAgain = tryAgain ?: false
 )
 
 sealed class PlayerType(val id: Int, val symbol: String){

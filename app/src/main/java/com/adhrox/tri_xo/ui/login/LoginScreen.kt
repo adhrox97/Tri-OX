@@ -60,13 +60,12 @@ import com.adhrox.tri_xo.ui.theme.Orange2
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 
-@Preview
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
     loginViewModel: LoginViewModel = hiltViewModel(),
-    navigateToSignUp: () -> Unit = { },
-    navigateToHome: () -> Unit = { }
+    navigateToSignUp: () -> Unit,
+    navigateToHome: () -> Unit
 ) {
     val uiStatus: LoginState by loginViewModel.uiState.collectAsState()
 

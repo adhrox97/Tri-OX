@@ -7,8 +7,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,10 +43,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
+import com.adhrox.tri_xo.domain.model.GameVerificationResult.*
 import com.adhrox.tri_xo.ui.theme.Accent
 import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.Orange1
@@ -54,8 +58,9 @@ import kotlinx.coroutines.coroutineScope
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    homeViewModel: HomeViewModel = hiltViewModel(),
-    navigateToGame: (String, String, Boolean) -> Unit
+    homeViewModel: HomeViewModel,
+    navigateToGame: (String, String, Boolean) -> Unit,
+    navigateToDetail: (String) -> Unit
 ) {
     LaunchedEffect(key1 = false) {
         homeViewModel.getCurrentUserModel()
@@ -63,14 +68,19 @@ fun HomeScreen(
 
     val gameState: GameState by homeViewModel.gameState.collectAsState()
 
-    gameState.found?.let { found ->
-        val message = if (found) {
-            homeViewModel.onJoinGame(gameState.gameId, navigateToGame)
+    gameState.gameVerification?.let { gameVerification ->
+        val message = when (gameVerification){
+            GameNotFound -> "Juego no encontrado"
+            GameFound -> "Encontrado"
+            GameFull -> "Partida llena"
+        }
+        toastMessage(LocalContext.current, message)
+        homeViewModel.resetGameVerificationState()
+        /*val message = if (gameVerification != GameNotFound) {
             "Encontrado"
         } else {
             "Juego no encontrado"
-        }
-        toastMessage(LocalContext.current, message)
+        }*/
     }
 
     Column(
@@ -79,11 +89,11 @@ fun HomeScreen(
             .fillMaxSize()
             .background(Background)
     ) {
-        Header(gameState.user.userName)
+        Header(gameState.user.userName, navigateToDetail)
         Body(
             loadingState = gameState.isLoading,
             onCrateGame = { homeViewModel.onCreateGame(navigateToGame) },
-            verifyGame = { gameId -> homeViewModel.verifyGame(gameId) }
+            onJoinGame = { gameId -> homeViewModel.onJoinGame(gameId, navigateToGame) }
         )
     }
     if (gameState.isLoading){
@@ -99,9 +109,15 @@ fun HomeScreen(
 }
 
 @Composable
-fun Header(userName: String) {
+fun Header(userName: String = "xd", navigateToDetail: (String) -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Bienvenido $userName", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text(
+            modifier = Modifier
+                .clickable { navigateToDetail(userName) },
+            text = "Bienvenido $userName",
+            color = Color.White, fontWeight = FontWeight.Bold,
+            fontSize = 24.sp
+        )
         Spacer(modifier = Modifier.height(24.dp))
         Box(
             modifier = Modifier
@@ -129,7 +145,7 @@ fun Header(userName: String) {
 }
 
 @Composable
-fun Body(loadingState: Boolean,onCrateGame: () -> Unit, verifyGame: (String) -> Unit) {
+fun Body(loadingState: Boolean,onCrateGame: () -> Unit, onJoinGame: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,7 +172,7 @@ fun Body(loadingState: Boolean,onCrateGame: () -> Unit, verifyGame: (String) -> 
                 AnimatedContent(targetState = createGame, label = "") {
                     when (it) {
                         true -> CreateGame(loadingState, onCrateGame)
-                        false -> JoinGame(verifyGame)
+                        false -> JoinGame(onJoinGame)
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
@@ -177,7 +193,7 @@ fun CreateGame(loadingState: Boolean, onCrateGame: () -> Unit) {
 }
 
 @Composable
-fun JoinGame(verifyGame: (String) -> Unit) {
+fun JoinGame(onJoinGame: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -195,7 +211,7 @@ fun JoinGame(verifyGame: (String) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = {
-                verifyGame(text)
+                onJoinGame(text)
             },
             enabled = text.isNotBlank(),
             colors = ButtonDefaults.buttonColors(
