@@ -15,3 +15,14 @@ val Orange1 = Color(0xFFF1701F)
 val Orange2 = Color(0xFFFDC33F)
 val Accent = Color(0xFFFFFFFF)
 val BlueLink = Color(0xFF00B3FF)
+
+val PinkPitudo = Color(0xFFFC83E2)
+val BgText = Color(0xFFC7BAFD)
+
+val MainColorBackground = Color(0xFF3B3B3C)
+val GradientColorBackground = Color(0xFF75767E)
+
+val BgText1 = Color(0xFF412452)
+val BgText2 = Color(0x9AFFFFFF)
+val Accent2 = Color(0xFFE4B702)
+val Accent3 = Color(0xFFF23831)

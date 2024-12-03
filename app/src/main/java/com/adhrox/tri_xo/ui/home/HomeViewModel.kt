@@ -6,6 +6,7 @@ import com.adhrox.tri_xo.data.network.model.GameData
 import com.adhrox.tri_xo.data.network.model.PlayerData
 import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
+import com.adhrox.tri_xo.domain.model.GameStatusEnum
 import com.adhrox.tri_xo.domain.model.GameVerificationResult
 import com.adhrox.tri_xo.domain.model.UserModel
 import com.google.firebase.auth.FirebaseUser
@@ -71,7 +72,8 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
             board = List(9) { 0 },
             player1 = currentPlayer,
             player2 = null,
-            playerTurn = currentPlayer
+            playerTurn = currentPlayer,
+            status = GameStatusEnum.ONGOING.value
         )
     }
 
@@ -86,6 +88,6 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
 
 data class GameState(
     val gameVerification: GameVerificationResult? = null,
-    val user: UserModel = UserModel("", "", mutableMapOf()),
+    val user: UserModel = UserModel("", "", "", mutableMapOf()),
     val isLoading: Boolean = false
 )

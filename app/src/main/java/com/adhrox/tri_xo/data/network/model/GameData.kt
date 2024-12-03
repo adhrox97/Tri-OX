@@ -1,6 +1,7 @@
 package com.adhrox.tri_xo.data.network.model
 
 import com.adhrox.tri_xo.domain.model.GameModel
+import com.adhrox.tri_xo.domain.model.GameStatus
 import com.adhrox.tri_xo.domain.model.PlayerModel
 import java.util.Calendar
 
@@ -9,7 +10,8 @@ data class GameData(
     val gameId: String? = null,
     val player1: PlayerData? = null,
     val player2: PlayerData? = null,
-    val playerTurn: PlayerData? = null
+    val playerTurn: PlayerData? = null,
+    val status: String? = null
 )
 
 fun GameModel.toData() = GameData(
@@ -17,7 +19,8 @@ fun GameModel.toData() = GameData(
     gameId = gameId,
     player1 = player1.toData(),
     player2 = player2?.toData(),
-    playerTurn = playerTurn.toData()
+    playerTurn = playerTurn.toData(),
+    status = status.toEnumValue()
 )
 
 data class PlayerData(

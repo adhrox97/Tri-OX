@@ -7,6 +7,11 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("C:\\Users\\adcom\\.android\\debug.keystore")
+        }
+    }
     namespace = "com.adhrox.tri_xo"
     compileSdk = 34
 
@@ -54,8 +59,6 @@ android {
 
 dependencies {
 
-    val firebase_version = "33.0.0"
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -66,19 +69,32 @@ dependencies {
     implementation(libs.androidx.material3)
 
     //Firebase
-    implementation(platform("com.google.firebase:firebase-bom:$firebase_version"))
+    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
-    //implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
+    //implementation(platform(libs.firebase.bom))
+    //implementation(libs.firebase.firestore.ktx)
+    //-implementation(libs.firebase.auth.ktx)
+    //implementation("com.google.firebase:firebase-storage-ktx")
+    //implementation(libs.firebase.analytics.ktx)
 
     //Dependencia para agregar autenticacion por cuenta de google
     implementation(libs.play.services.auth)
+    //-implementation(libs.play.services.auth)
+    //implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    //Worker manager
+    implementation(libs.androidx.work.runtime.ktx)
 
     //DaggerHilt
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
+
+    //Hilt for worker
+    implementation(libs.androidx.hilt.hilt.work)
+    kapt(libs.androidx.hilt.compiler)
 
     //NavComponent
     implementation(libs.androidx.navigation.compose)

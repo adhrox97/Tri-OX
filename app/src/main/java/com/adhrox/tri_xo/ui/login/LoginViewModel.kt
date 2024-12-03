@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
+import com.adhrox.tri_xo.domain.exceptions.UserAlreadyExistsException
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -38,13 +39,18 @@ class LoginViewModel @Inject constructor(private val auth: AuthService): ViewMod
     fun signUpAnonymously(navigateToHome: () -> Unit){
         viewModelScope.launch {
             showLoading(true)
-            val result = withContext(Dispatchers.IO){ auth.loginAnonymously() }
+            try {
+                val result = withContext(Dispatchers.IO){ auth.loginAnonymously() }
 
-            if (result){
-                //val userName = "Anon-${result.uid.subSequence(0,5)}"
+                if (result){
+                    navigateToHome()
+                } else {
+                    Log.i("adhrox", "Error null")
+                }
+            } catch (e: UserAlreadyExistsException) {
                 navigateToHome()
-            } else {
-                Log.i("adhrox", "Error null")
+            } catch (e: Exception) {
+                Log.i("adhrox", "Error: ${e.message}")
             }
             showLoading(false)
         }
@@ -61,10 +67,16 @@ class LoginViewModel @Inject constructor(private val auth: AuthService): ViewMod
     fun loginWithGoogle(idToken: String, navigateToHome: () -> Unit) {
         viewModelScope.launch {
             showLoading(true)
-            val result = withContext(Dispatchers.IO) {
-                auth.loginWithGoogle(idToken)
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    auth.loginWithGoogle(idToken)
+                }
+                if (result) navigateToHome()
+            } catch (e: UserAlreadyExistsException) {
+                navigateToHome()
+            } catch (e: Exception) {
+                Log.i("adhrox", "Error: ${e.message}")
             }
-            if (result) navigateToHome()
             showLoading(false)
         }
     }

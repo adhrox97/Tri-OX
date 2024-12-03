@@ -10,10 +10,15 @@ import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
 import com.adhrox.tri_xo.domain.exceptions.UserAlreadyExistsException
 import com.adhrox.tri_xo.domain.model.GameModel
+import com.adhrox.tri_xo.domain.model.GameStatusEnum
 import com.adhrox.tri_xo.domain.model.GameVerificationResult
-import com.adhrox.tri_xo.domain.model.GameVerificationResult.*
+import com.adhrox.tri_xo.domain.model.GameVerificationResult.GameFound
+import com.adhrox.tri_xo.domain.model.GameVerificationResult.GameFull
+import com.adhrox.tri_xo.domain.model.GameVerificationResult.GameNotFound
+import com.adhrox.tri_xo.domain.model.GameVerificationResult.GameFinished
 import com.adhrox.tri_xo.domain.model.UserModel
 import com.adhrox.tri_xo.domain.model.toModel
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.snapshots
 import kotlinx.coroutines.CancellableContinuation
@@ -38,6 +43,7 @@ class RepositoryImpl @Inject constructor(
         private const val FIELD_GAMES_INFO = "gamesInfo"
         private const val FIELD_PLAYER1 = "player1"
         private const val FIELD_PLAYER2 = "player2"
+        private const val FIELD_STATUS = "status"
     }
 
     private val authService: AuthService by lazy { authServiceProvider.get() }
@@ -45,14 +51,14 @@ class RepositoryImpl @Inject constructor(
     override fun createGame(gameData: GameData): String {
         val customId = getCustomId()
         val newGame = gameData.copy(gameId = customId)
-        db.collection(PATH_GAMES).document(customId).set(newGame)
+
+        getDocumentReference(PATH_GAMES, customId).set(newGame)
+
         return customId
     }
 
     override fun joinToGame(gameId: String): Flow<GameModel?> {
-        return db
-            .collection(PATH_GAMES)
-            .document(gameId)
+        return getDocumentReference(PATH_GAMES, gameId)
             .snapshots()
             .map { ds ->
                 ds.toObject(GameData::class.java)?.toModel()
@@ -61,14 +67,13 @@ class RepositoryImpl @Inject constructor(
 
     override suspend fun verifyGame(gameId: String): GameVerificationResult {
 
-        val documentSnapshot = db
-            .collection(PATH_GAMES)
-            .document(gameId)
+        val documentSnapshot = getDocumentReference(PATH_GAMES, gameId)
             .get()
             .await()
 
         return when {
             !documentSnapshot.exists() -> GameNotFound
+            documentSnapshot.get("status") == "FINISHED" -> GameFinished
             documentSnapshot.get("player2") == null -> GameFound
             else -> GameFull
         }
@@ -76,28 +81,38 @@ class RepositoryImpl @Inject constructor(
 
     override fun updateGame(gameData: GameData) {
         if (gameData.gameId != null) {
-            db.collection(PATH_GAMES).document(gameData.gameId).set(gameData)
+            getDocumentReference(PATH_GAMES, gameData.gameId).set(gameData)
         }
     }
 
     override fun updateTryAgain(gameId: String, player: PlayerData?) {
-        val reference = db.collection(PATH_GAMES).document(gameId)
         player?.let {
             val field = if (it.playerType == 2) FIELD_PLAYER1 else FIELD_PLAYER2
-            reference.update(field, it)
+            getDocumentReference(PATH_GAMES, gameId).update(field, it)
         }
     }
 
-    override fun createUser(
+    override fun updateGameStatus(gameId: String, status: String) {
+        getDocumentReference(PATH_GAMES, gameId).update(FIELD_STATUS, status)
+    }
+
+    override fun checkAndCreateUser(
         user: UserDto,
         cancellableContinuation: CancellableContinuation<Boolean>
     ) {
-        db.collection(PATH_USERS).document(user.userName).set(user)
+        val userName = user.userName
+
+        getDocumentReference(PATH_USERS, userName)
+            .get()
             .addOnSuccessListener {
-                cancellableContinuation.resume(true)
+                if (!it.exists()) {
+                    createUser(user, cancellableContinuation)
+                } else {
+                    cancellableContinuation.resumeWithException(UserAlreadyExistsException())
+                }
             }
-            .addOnFailureListener {
-                cancellableContinuation.resumeWithException(it)
+            .addOnFailureListener { checkError ->
+                cancellableContinuation.resumeWithException(checkError)
             }
     }
 
@@ -117,35 +132,30 @@ class RepositoryImpl @Inject constructor(
     }
 
     override fun updateStatsUser(userName: String, gameInfo: Map<String, Int>) {
-        val userRef = db.collection(PATH_USERS).document(userName)
-
-        userRef
+        getDocumentReference(PATH_USERS, userName)
             .update(FIELD_GAMES_INFO, gameInfo)
             .addOnSuccessListener { Log.d(TAG, "Documento actualizado") }
             .addOnFailureListener { e -> Log.w(TAG, "Error al actualizar documento", e) }
     }
 
-    private fun getCustomId(): String {
-        return Date().time.toString()
+    private fun createUser(
+        user: UserDto,
+        cancellableContinuation: CancellableContinuation<Boolean>
+    ) {
+        getDocumentReference(PATH_USERS, user.userName).set(user)
+            .addOnSuccessListener {
+                cancellableContinuation.resume(true)
+            }
+            .addOnFailureListener { createError ->
+                cancellableContinuation.resumeWithException(createError)
+            }
     }
 
-    override suspend fun isUserAlreadyExist(
-        userName: String
-    ) {
-        return suspendCancellableCoroutine { cancellableContinuation ->
-            db.collection(PATH_USERS)
-                .document(userName)
-                .get()
-                .addOnSuccessListener {
-                    if (it.exists()) {
-                        cancellableContinuation.resumeWithException(UserAlreadyExistsException())
-                    } else {
-                        cancellableContinuation.resume(Unit)
-                    }
-                }
-                .addOnFailureListener {
-                    cancellableContinuation.resumeWithException(it)
-                }
-        }
+    private fun getDocumentReference(collectionPath: String, documentId: String): DocumentReference{
+        return db.collection(collectionPath).document(documentId)
+    }
+
+    private fun getCustomId(): String {
+        return Date().time.toString()
     }
 }

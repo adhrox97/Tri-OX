@@ -6,6 +6,7 @@ import com.adhrox.tri_xo.data.dto.UserDto
 import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
 import com.adhrox.tri_xo.domain.exceptions.UserAlreadyExistsException
+import com.adhrox.tri_xo.domain.exceptions.UserHasNullEmail
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -19,19 +20,21 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class SignUpViewModel @Inject constructor(private val authService: AuthService, private val repository: Repository): ViewModel() {
+class SignUpViewModel @Inject constructor(
+    private val authService: AuthService
+) : ViewModel() {
     private var _uiState = MutableStateFlow<AddNewUser>(AddNewUser())
     val uiState: StateFlow<AddNewUser> = _uiState
 
-    fun onUserChange(user: String){
+    fun onUserChange(user: String) {
         updateUserState(user)
     }
 
-    fun onEmailChange(email: String){
+    fun onEmailChange(email: String) {
         _uiState.update { it.copy(email = email) }
     }
 
-    fun onPasswordChange(password: String){
+    fun onPasswordChange(password: String) {
         updatePasswordState(password, _uiState.value.repeatPassword)
     }
 
@@ -45,33 +48,34 @@ class SignUpViewModel @Inject constructor(private val authService: AuthService, 
             showLoading(true)
             try {
                 val userDto = UserDto(userName = userName, email = email)
-                val result = withContext(Dispatchers.IO){
-                    repository.isUserAlreadyExist(userName)
+                val result = withContext(Dispatchers.IO) {
                     authService.registerUser(userDto, password)
                 }
 
                 if (result) navigateToHome()
 
-            } catch (e: FirebaseAuthWeakPasswordException){
+            } catch (e: FirebaseAuthWeakPasswordException) {
                 _uiState.update { it.copy(error = "La contraseña debe tener mas de 6 digitos") }
-            } catch (e: FirebaseAuthInvalidCredentialsException){
+            } catch (e: FirebaseAuthInvalidCredentialsException) {
                 _uiState.update { it.copy(error = "Escribe un email valido") }
-            } catch (e: UserAlreadyExistsException){
+            } catch (e: UserAlreadyExistsException) {
                 _uiState.update { it.copy(error = "El nombre de usuario ya existe") }
-            } catch (e: FirebaseAuthUserCollisionException){
+            } catch (e: UserHasNullEmail) {
+                _uiState.update { it.copy(error = "Hay un problema con los datos del usuario") }
+            } catch (e: FirebaseAuthUserCollisionException) {
                 _uiState.update { it.copy(error = "Ya existe un usuario vinculado al email") }
-            } catch (e: Exception){
+            } catch (e: Exception) {
                 _uiState.update { it.copy(error = "Error desconocido") }
             }
             showLoading(false)
         }
     }
 
-    private fun showLoading(state: Boolean){
+    private fun showLoading(state: Boolean) {
         _uiState.update { it.copy(isLoading = state) }
     }
 
-    fun resetErrorStatus(){
+    fun resetErrorStatus() {
         _uiState.update { it.copy(error = null) }
     }
 
@@ -89,11 +93,11 @@ class SignUpViewModel @Inject constructor(private val authService: AuthService, 
         }
     }
 
-    private fun updateUserState(user: String){
+    private fun updateUserState(user: String) {
         _uiState.update {
             it.copy(
                 user = user,
-                isValidUserName = !(user.contains("\\") || user.contains("-"))
+                isValidUserName = !(user.contains("\\") || user.contains("-") || user.contains(":") || user.contains(" "))
             )
         }
     }
@@ -108,6 +112,7 @@ data class AddNewUser(
     val isValidUserName: Boolean = true,
     val isLoading: Boolean = false,
     val error: String? = null
-){
-    fun isValidUser() = user.isNotBlank() && email.isNotBlank() && password.isNotBlank() && isPasswordMatch && isValidUserName
+) {
+    fun isValidUser() =
+        user.isNotBlank() && email.isNotBlank() && password.isNotBlank() && isPasswordMatch && isValidUserName
 }

@@ -1,6 +1,8 @@
 package com.adhrox.tri_xo.di
 
 import android.content.Context
+import androidx.work.CoroutineWorker
+import androidx.work.WorkManager
 import com.adhrox.tri_xo.data.network.FirebaseAuthService
 import com.adhrox.tri_xo.data.network.RepositoryImpl
 import com.adhrox.tri_xo.domain.AuthService
@@ -38,4 +40,9 @@ object DataModule {
     fun provideAuthService(firebaseAuth: FirebaseAuth, repository: Repository, @ApplicationContext context: Context): AuthService {
         return FirebaseAuthService(firebaseAuth, repository, context)
     }
+
+    @Singleton
+    @Provides
+    fun provideWorkManager(@ApplicationContext appContext: Context): WorkManager =
+        WorkManager.getInstance(appContext)
 }

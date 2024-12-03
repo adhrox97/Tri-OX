@@ -26,7 +26,7 @@ import com.adhrox.tri_xo.ui.userdetail.UserDetailScreen
 
 @Composable
 fun ContentWrapper(navigationController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(navController = navigationController, startDestination = Login.route) {
+    NavHost(navController = navigationController, startDestination = Splash.route) {
 
         composable(Splash.route) {
             SplashScreen(
@@ -34,12 +34,16 @@ fun ContentWrapper(navigationController: NavHostController, modifier: Modifier =
                 navigateToLogin = {
                     navigationController.navigate(
                         Login.route
-                    )
+                    ){
+                        popUpTo(Splash.route) { inclusive = true }
+                    }
                 },
                 navigateToHome = {
                     navigationController.navigate(
                         UserMenu.route
-                    )
+                    ){
+                        popUpTo(Splash.route) { inclusive = true }
+                    }
                 }
             )
         }
@@ -96,14 +100,12 @@ fun ContentWrapper(navigationController: NavHostController, modifier: Modifier =
                     }
                 )
             }
-            composable(
-                UserDetail.route
-            ) { entry ->
+            composable(UserDetail.route) { entry ->
                 val viewModel = entry.sharedViewModel<HomeViewModel>(navigationController)
                 val state by viewModel.gameState.collectAsState()
                 UserDetailScreen(
                     modifier = modifier,
-                    stats = state.user.gamesInfo
+                    userInfo = state.user
                 )
             }
         }
@@ -156,121 +158,3 @@ inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(
     }
     return hiltViewModel(parentEntry)
 }
-
-/*
-fun ContentWrapper(navigationController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(navController = navigationController, startDestination = Login.route) {
-
-        composable(Splash.route) {
-            SplashScreen(
-                modifier = modifier,
-                navigateToLogin = {
-                    navigationController.navigate(
-                        Login.route
-                    )
-                },
-                navigateToHome = {
-                    navigationController.navigate(
-                        Home.route
-                    )
-                }
-            )
-        }
-
-        composable(Login.route) {
-            LoginScreen(
-                modifier = modifier,
-                navigateToSignUp = {
-                    navigationController.navigate(
-                        SignUp.route
-                    )
-                },
-                navigateToHome = {
-                    navigationController.navigate(
-                        Home.route
-                    ) {
-                        popUpTo(Login.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(SignUp.route) {
-            SignUpScreen(
-                modifier = modifier,
-                navigateToHome = {
-                    navigationController.navigate(
-                        Home.route
-                    ) {
-                        popUpTo(Login.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(Home.route) {
-            HomeScreen(
-                modifier = modifier,
-                navigateToGame = { gameId, userName, owner ->
-                    navigationController.navigate(
-                        Game.createRoute(gameId, userName, owner)
-                    )
-                },
-                navigateToDetail = { userName ->
-                    navigationController.navigate(
-                        UserDetail.createRoute(userName)
-                    )
-                }
-            )
-        }
-        composable(
-            UserDetail.route,
-            arguments = listOf(
-                navArgument("userName") { type = NavType.StringType }
-            )
-        ) {
-            UserDetailScreen(
-                modifier = modifier,
-                userName = it.arguments?.getString("userName").orEmpty()
-            )
-        }
-        composable(
-            Game.route,
-            arguments = listOf(
-                navArgument("gameId") { type = NavType.StringType },
-                navArgument("userName") { type = NavType.StringType },
-                navArgument("owner") { type = NavType.BoolType }
-            )
-        ) {
-            GameScreen(
-                modifier = modifier,
-                gameId = it.arguments?.getString("gameId").orEmpty(),
-                userName = it.arguments?.getString("userName").orEmpty(),
-                owner = it.arguments?.getBoolean("owner") ?: false,
-                navigateToHome = {
-                    navigationController.popBackStack(
-                        route = Home.route,
-                        inclusive = false
-                    )
-                }
-            )
-        }
-    }
-}
-
-sealed class Routes(val route: String) {
-    data object Splash : Routes("splash")
-    data object Login : Routes("login")
-    data object SignUp : Routes("signUp")
-    data object Home : Routes("home")
-    data object UserDetail: Routes("userDetail/{userName}") {
-        fun createRoute(userName: String): String {
-            return "userDetail/$userName"
-        }
-    }
-    data object Game : Routes("game/{gameId}/{userName}/{owner}") {
-        fun createRoute(gameId: String, userName: String, owner: Boolean): String {
-            return "game/$gameId/$userName/$owner"
-        }
-    }
-}*/

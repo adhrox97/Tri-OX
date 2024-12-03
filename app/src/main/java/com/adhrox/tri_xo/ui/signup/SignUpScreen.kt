@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Email
@@ -23,6 +24,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -34,16 +36,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
+import com.adhrox.tri_xo.ui.theme.Accent2
+import com.adhrox.tri_xo.ui.theme.Accent3
 import com.adhrox.tri_xo.ui.theme.Background
+import com.adhrox.tri_xo.ui.theme.BgText2
 import com.adhrox.tri_xo.ui.theme.Orange1
 import com.adhrox.tri_xo.ui.theme.Orange2
 
@@ -87,7 +95,7 @@ fun SignUpScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Background)
+            //.background(Background)
             .padding(12.dp)
     ) {
         IconButton(
@@ -104,94 +112,95 @@ fun SignUpScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Background)
+                //.background(Background)
                 .padding(horizontal = 8.dp)
         ) {
             Text(
-                text = "Crear cuenta",
+                modifier = Modifier.fillMaxWidth(),
+                text = "Crea una cuenta",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
-                fontSize = 36.sp
+                fontSize = 38.sp,
+                textAlign = TextAlign.Center
             )
-            OutlinedTextField(
+            Text(
                 modifier = Modifier.fillMaxWidth(),
+                text = "para comenzar ahora!",
+                color = Color.White,
+                fontWeight = FontWeight.Light,
+                fontSize = 38.sp,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            OutlinedTextForm(
                 value = user,
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.AccountBox,
-                        contentDescription = ""
-                    )
-                },
                 onValueChange = {
                     user = it
                     signUpViewModel.onUserChange(it)
                 },
-                label = { Text(text = "Nombre de usuario", fontSize = 14.sp) },
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedLabelColor = Color.White
-                )
+                leadingIconImageVector = Icons.Default.AccountBox,
+                textLabel = "Nombre de usuario"
             )
             if (!uiStatus.isValidUserName){
-                Text(text = "La Nombre de usuario no debe contener los simbolos \"\\\" ó \"-\"", color = Color.Red)
+                Text(
+                    text = "El Nombre de usuario no debe contener los simbolos \"\\\" ó \"-\" ó \":\" ó espacios",
+                    color = Accent3,
+                    fontWeight = FontWeight.Light
+                )
             }
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+            OutlinedTextForm(
                 value = email,
-                leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = "") },
                 onValueChange = {
                     email = it
                     signUpViewModel.onEmailChange(it)
                 },
-                label = { Text(text = "Correo electrónico", fontSize = 14.sp) },
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedLabelColor = Color.White
-                )
+                leadingIconImageVector = Icons.Default.Email,
+                textLabel = "Correo electrónico"
             )
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+            OutlinedTextForm(
                 value = password,
-                leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = "") },
                 onValueChange = {
                     password = it
                     signUpViewModel.onPasswordChange(it)
                 },
-                label = { Text(text = "Contraseña", fontSize = 14.sp) },
+                leadingIconImageVector = Icons.Default.Lock,
+                textLabel = "Contraseña",
                 visualTransformation = PasswordVisualTransformation(),
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedLabelColor = Color.White
-                )
             )
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+            OutlinedTextForm(
                 value = repeatPassword,
-                leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = "") },
                 onValueChange = {
                     repeatPassword = it
                     signUpViewModel.onRepeatPasswordChange(it)
                 },
-                label = { Text(text = "Repetir contraseña", fontSize = 14.sp) },
+                leadingIconImageVector = Icons.Default.Lock,
+                textLabel = "Repetir contraseña",
                 visualTransformation = PasswordVisualTransformation(),
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color.White,
-                    focusedLabelColor = Color.White
-                )
             )
             if (!uiStatus.isPasswordMatch){
-                Text(text = "La contraseña no coincide", color = Color.Red)
+                Text(
+                    text = "La contraseña no coincide",
+                    color = Accent3,
+                    fontWeight = FontWeight.Light
+                )
             }
             Spacer(modifier = Modifier.weight(1f))
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
+                    //.height(54.dp)
                     .imePadding(),
-                colors = ButtonDefaults.buttonColors(containerColor = Orange1, disabledContainerColor = Color.Gray),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, disabledContainerColor = Color.Gray),
+                shape = RoundedCornerShape(12.dp),
                 onClick = { signUpViewModel.registerUser(user, email, password, navigateToHome) },
                 enabled = uiStatus.isValidUser()
             ) {
-                Text(text = "Registrarse")
+                Text(
+                    text = "Registrarse",
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black,
+                    fontSize = 20.sp
+                )
             }
         }
     }
@@ -205,6 +214,33 @@ fun SignUpScreen(
             )
         }
     }
+}
+
+@Composable
+fun OutlinedTextForm(
+    value: String,
+    onValueChange: (String) -> Unit,
+    textLabel: String,
+    leadingIconImageVector: ImageVector,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+){
+    OutlinedTextField(
+        modifier = Modifier.fillMaxWidth(),
+        value = value,
+        leadingIcon = { Icon(imageVector = leadingIconImageVector, contentDescription = null) },
+        onValueChange = onValueChange,
+        visualTransformation = visualTransformation,
+        label = { Text(text = textLabel, fontSize = 14.sp) },
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = BgText2,
+            focusedContainerColor = Color.LightGray,
+            focusedLabelColor = Color.White,
+            unfocusedLabelColor = Color.White,
+            unfocusedBorderColor = Color.White,
+            focusedBorderColor = Accent2
+        )
+    )
 }
 
 private fun toastMessage(context: Context, msg: String){

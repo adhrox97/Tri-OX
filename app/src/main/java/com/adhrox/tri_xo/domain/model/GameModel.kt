@@ -11,7 +11,8 @@ data class GameModel(
     val playerTurn: PlayerModel,
     val gameId: String,
     val isGameReady: Boolean = false,
-    val isMyTurn: Boolean = false
+    val isMyTurn: Boolean = false,
+    val status: GameStatus
 ) {
     fun canTryAgain(): Boolean{
         return if (player2 != null){
@@ -27,7 +28,8 @@ fun GameData.toModel() = GameModel(
     gameId = gameId.orEmpty(),
     player1 = player1!!.toModel(),
     player2 = player2?.toModel(),
-    playerTurn = playerTurn!!.toModel()
+    playerTurn = playerTurn!!.toModel(),
+    status = GameStatus.fromEnum(status ?: "Ongoing")
 )
 
 data class PlayerModel(

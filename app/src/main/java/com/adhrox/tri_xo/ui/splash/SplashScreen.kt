@@ -1,36 +1,21 @@
 package com.adhrox.tri_xo.ui.splash
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
-import com.adhrox.tri_xo.ui.home.HomeViewModel
-import com.adhrox.tri_xo.ui.theme.Background
-import com.adhrox.tri_xo.ui.theme.Orange1
 
 @Composable
 fun SplashScreen(
@@ -47,27 +32,48 @@ fun SplashScreen(
         }
     }
 
+    /*val infiniteTransition = rememberInfiniteTransition()
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 10000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )*/
+    
+    /*Box(modifier = Modifier.fillMaxSize()){
+        Image(
+            painter = painterResource(id = R.drawable.bg_app1),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.matchParentSize()
+        )
+    }*/
+
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .background(Background),
+            .fillMaxSize(),
+            //background(Background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
-                .size(200.dp)
-                .padding(12.dp)
-                .clip(CircleShape)
-                .border(2.dp, Orange1, RoundedCornerShape(50)),
+                .size(275.dp),
+                //.padding(6.dp),
+                //.clip(RoundedCornerShape(50))
+                //.border(4.dp, PurpleTriqui, RoundedCornerShape(50)),
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_applogo),
+                painter = painterResource(id = R.drawable.ic_app_splash),
                 contentDescription = "logo",
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 36.dp)
+                    .padding(12.dp)
+                    //.rotate(rotation)
+                    //.padding(bottom = 36.dp)
             )
         }
     }

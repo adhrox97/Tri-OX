@@ -2,9 +2,11 @@ package com.adhrox.tri_xo.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.adhrox.tri_xo.R
 
 // Set of Material typography styles to start with
 val Typography = Typography(
@@ -31,4 +33,16 @@ val Typography = Typography(
         letterSpacing = 0.5.sp
     )
     */
+)
+
+val CustomTypography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily(
+            Font(R.font.tomorrow_light, FontWeight.Light),
+            Font(R.font.tomorrow_regular, FontWeight.Normal),
+            Font(R.font.tomorrow_bold, FontWeight.Bold)
+        ),
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp
+    )
 )

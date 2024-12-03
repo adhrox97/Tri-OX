@@ -3,7 +3,11 @@ package com.adhrox.tri_xo.ui.game
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.adhrox.tri_xo.data.network.model.toData
+import com.adhrox.tri_xo.data.network.workers.CancelGameWorker
 import com.adhrox.tri_xo.domain.Repository
 import com.adhrox.tri_xo.domain.model.GameModel
 import com.adhrox.tri_xo.domain.model.GameStatus
@@ -20,7 +24,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class GameViewModel @Inject constructor(private val repository: Repository) : ViewModel() {
+class GameViewModel @Inject constructor(private val repository: Repository, private val workManager: WorkManager) : ViewModel() {
 
     companion object {
         private const val STAT_WIN = "win"
@@ -38,6 +42,12 @@ class GameViewModel @Inject constructor(private val repository: Repository) : Vi
     private val _gameStatus = MutableStateFlow<GameStatus>(GameStatus.Ongoing())
     val gameStatus: StateFlow<GameStatus> = _gameStatus
 
+    override fun onCleared() {
+        super.onCleared()
+        //cancelGame()
+        scheduleCancelGameWorker()
+    }
+
     fun joinToGame(gameId: String, userName: String, owner: Boolean) {
         viewModelScope.launch {
             //this@GameViewModel.userName = userName
@@ -54,10 +64,13 @@ class GameViewModel @Inject constructor(private val repository: Repository) : Vi
     private fun join(gameId: String) {
         viewModelScope.launch {
             repository.joinToGame(gameId).collect {
+                val isBoardChange = it?.board != _game.value?.board
                 val result =
                     it?.copy(isGameReady = it.player2 != null, isMyTurn = isMyTurn(it.playerTurn))
                 _game.value = result
-                verifyWinner()
+                if (isBoardChange){
+                    verifyWinner()
+                }
                 restartGame()
             }
         }
@@ -108,8 +121,11 @@ class GameViewModel @Inject constructor(private val repository: Repository) : Vi
     private fun verifyWinner() {
         val board = _game.value?.board
         if (board != null && board.size == 9) {
-            _gameStatus.value = isGameWon(board)
-            updatePlayerStats(_gameStatus.value)
+            /*_gameStatus.value = isGameWon(board)
+            updatePlayerStats(_gameStatus.value)*/
+            val status = isGameWon(board)
+            updateGamesStatus(status)
+            updatePlayerStats(status)
         }
     }
 
@@ -136,6 +152,8 @@ class GameViewModel @Inject constructor(private val repository: Repository) : Vi
             }
 
             is GameStatus.Ongoing -> {}
+
+            is GameStatus.Finished -> {}
         }
     }
 
@@ -168,12 +186,10 @@ class GameViewModel @Inject constructor(private val repository: Repository) : Vi
     fun changeTryAgainStatus(owner: Boolean) {
         _game.value?.let { game ->
             val player = if (owner) game.player1 else game.player2
-
             player?.let {
                 val updatedPlayer = it.copy(tryAgain = !it.tryAgain).toData()
                 repository.updateTryAgain(game.gameId, updatedPlayer)
             }
-            Log.i("adhrox", "Quiere reiniciar? player1: ${game.player1.tryAgain}, player2: ${game.player2?.tryAgain ?: "null"}")
         }
     }
 
@@ -188,7 +204,8 @@ class GameViewModel @Inject constructor(private val repository: Repository) : Vi
                     player2 = currentGame.player2?.copy(tryAgain = false)
                 ).toData()
             )
-            _gameStatus.value = GameStatus.Ongoing()
+            //_gameStatus.value = GameStatus.Ongoing()
+            updateGamesStatus(GameStatus.Ongoing())
         }
     }
 
@@ -210,5 +227,27 @@ class GameViewModel @Inject constructor(private val repository: Repository) : Vi
 
     private fun getEnemyPlayer(): PlayerModel? {
         return if (game.value?.player1?.userName == user.userName) game.value?.player2 else game.value?.player1
+    }
+
+    /*private fun cancelGame(){
+        updateGamesStatus(GameStatus.Finished())
+    }*/
+
+    private fun updateGamesStatus(gameStatus: GameStatus){
+        _game.value?.let {
+            repository.updateGameStatus(it.gameId, gameStatus.toEnumValue())
+        }
+    }
+
+    private fun scheduleCancelGameWorker(){
+        _game.value?.let {
+            val inputData = workDataOf(CancelGameWorker.KEY_GAME_ID to it.gameId)
+
+            val cancelGameRequest = OneTimeWorkRequestBuilder<CancelGameWorker>()
+                .setInputData(inputData)
+                .build()
+
+            workManager.enqueue(cancelGameRequest)
+        }
     }
 }
