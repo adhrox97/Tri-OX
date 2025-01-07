@@ -27,7 +27,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.MenuItemColors
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
@@ -35,6 +40,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +58,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,10 +68,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
+import com.adhrox.tri_xo.domain.model.GameModeEnum
 import com.adhrox.tri_xo.domain.model.GameVerificationResult.*
 import com.adhrox.tri_xo.ui.theme.Accent
+import com.adhrox.tri_xo.ui.theme.Accent2
+import com.adhrox.tri_xo.ui.theme.Accent3
 import com.adhrox.tri_xo.ui.theme.Background
+import com.adhrox.tri_xo.ui.theme.BgText2
 import com.adhrox.tri_xo.ui.theme.CustomTypography
+import com.adhrox.tri_xo.ui.theme.MainColorBackground
 import com.adhrox.tri_xo.ui.theme.Orange1
 import com.adhrox.tri_xo.ui.theme.Orange2
 import kotlinx.coroutines.coroutineScope
@@ -82,8 +95,8 @@ fun HomeScreen(
     val gameState: GameState by homeViewModel.gameState.collectAsState()
 
     gameState.gameVerification?.let { gameVerification ->
-        val message = gameVerification.statusString
-        toastMessage(LocalContext.current, message)
+        val message = gameVerification.refStatus
+        toastMessage(LocalContext.current, stringResource(id = message))
         homeViewModel.resetGameVerificationState()
     }
 
@@ -96,7 +109,7 @@ fun HomeScreen(
         Header(gameState.user.userName, gameState.isLoading, navigateToDetail)
         Body(
             loadingState = gameState.isLoading,
-            onCrateGame = { homeViewModel.onCreateGame(navigateToGame) },
+            onCrateGame = { gameMode -> homeViewModel.onCreateGame(gameMode, navigateToGame) },
             onJoinGame = { gameId -> homeViewModel.onJoinGame(gameId, navigateToGame) }
         )
     }
@@ -104,8 +117,8 @@ fun HomeScreen(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 modifier = Modifier.size(42.dp),
-                trackColor = Orange1,
-                color = Orange2,
+                trackColor = MainColorBackground,
+                color = Accent2,
                 strokeWidth = 6.dp
             )
         }
@@ -113,7 +126,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun Header(userName: String = "Adhrox", loadingState: Boolean, navigateToDetail: (String) -> Unit) {
+fun Header(userName: String, loadingState: Boolean, navigateToDetail: (String) -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Card(
             modifier = Modifier
@@ -136,7 +149,7 @@ fun Header(userName: String = "Adhrox", loadingState: Boolean, navigateToDetail:
                     modifier = Modifier
                         .weight(1f)
                         .clickable { if (!loadingState) navigateToDetail(userName) },
-                    text = "Bienvenido $userName",
+                    text = "${stringResource(id = R.string.welcome)} $userName",
                     maxLines = 1,
                     color = Color.White,
                     //fontWeight = FontWeight.Bold,
@@ -166,7 +179,7 @@ fun Header(userName: String = "Adhrox", loadingState: Boolean, navigateToDetail:
 }
 
 @Composable
-fun Body(loadingState: Boolean, onCrateGame: () -> Unit, onJoinGame: (String) -> Unit) {
+fun Body(loadingState: Boolean, onCrateGame: (String) -> Unit, onJoinGame: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -174,30 +187,43 @@ fun Body(loadingState: Boolean, onCrateGame: () -> Unit, onJoinGame: (String) ->
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Spacer(modifier = Modifier.height(42.dp))
-        CreateGame(loadingState, onCrateGame)
+        CreateGame(loadingState) { gameMode -> onCrateGame(gameMode) }
         Image(painter = painterResource(id = R.drawable.ic_app_splash), contentDescription = null)
         JoinGame(onJoinGame)
     }
 }
 
 @Composable
-fun CreateGame(loadingState: Boolean, onCrateGame: () -> Unit) {
+fun CreateGame(loadingState: Boolean, onCrateGame: (String) -> Unit) {
+
+    val context = LocalContext.current
+    val selectedMode = remember { mutableStateOf(GameModeEnum.STANDARD) }
+
     Button(
         modifier = Modifier
             .fillMaxWidth()
             .height(54.dp),
-        onClick = { onCrateGame() },
+        onClick = { onCrateGame(selectedMode.value.name) },
         enabled = !loadingState,
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE4B702))
     ) {
         Text(
-            text = "Crear juego",
+            text = stringResource(id = R.string.create_game),
             style = CustomTypography.bodyLarge,
             color = Color.Black,
             fontSize = 20.sp
         )
     }
+    
+    val selectedModeString = stringResource(id = R.string.selected_mode)
+    
+    GameModeSelector(
+        selectedMode = selectedMode,
+        onModeSelected = { gameModeName ->
+            toastMessage(context, "$selectedModeString $gameModeName")
+        }
+    )
 }
 
 @Composable
@@ -207,7 +233,7 @@ fun JoinGame(onJoinGame: (String) -> Unit) {
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         value = text,
-        placeholder = { Text(text = "Escribe un ID", textAlign = TextAlign.Center) },
+        placeholder = { Text(text = stringResource(id = R.string.type_game_id), textAlign = TextAlign.Center) },
         onValueChange = { text = it },
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
@@ -236,7 +262,7 @@ fun JoinGame(onJoinGame: (String) -> Unit) {
         )
     ) {
         Text(
-            text = "Unirse a juego",
+            text = stringResource(id = R.string.join_game),
             style = CustomTypography.bodyLarge,
             color = Color.Black,
             fontSize = 20.sp
@@ -244,6 +270,60 @@ fun JoinGame(onJoinGame: (String) -> Unit) {
     }
 }
 //}
+
+@Composable
+fun GameModeSelector(
+    selectedMode: MutableState<GameModeEnum>,
+    onModeSelected: (String) -> Unit
+) {
+    val expanded = remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(42.dp),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFFD1D1D1)),
+            border = BorderStroke(1.dp, Color.Black),
+            shape = RoundedCornerShape(25),
+            onClick = { expanded.value = true }
+        ) {
+            Text(
+                text = "${stringResource(id = R.string.mode)}: ${stringResource(id = selectedMode.value.refMode)}",
+                style = CustomTypography.bodyLarge,
+                fontWeight = FontWeight.Light,
+                color = Color.Black,
+                fontSize = 20.sp
+            )
+        }
+
+        DropdownMenu(
+            modifier = Modifier.fillMaxWidth(),
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false }
+        ) {
+            GameModeEnum.entries.forEach { mode ->
+                val gameModeName = stringResource(id = mode.refMode)
+                DropdownMenuItem(
+                    //modifier = Modifier.background(Color.Red),
+                    onClick = { 
+                        selectedMode.value = mode
+                        expanded.value = false
+                        onModeSelected(gameModeName)
+                    },
+                    //colors = MenuItemColors(),
+                    text = {
+                        Text(
+                            style = CustomTypography.bodyLarge,
+                            fontWeight = FontWeight.Light,
+                            text = stringResource(id = mode.refMode)
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
 
 private fun toastMessage(context: Context, msg: String) {
     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()

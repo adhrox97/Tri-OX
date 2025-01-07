@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
+import com.adhrox.tri_xo.domain.model.BoardCellModel
 import com.adhrox.tri_xo.domain.model.GameModel
 import com.adhrox.tri_xo.domain.model.GameStatus
 import com.adhrox.tri_xo.domain.model.PlayerType
@@ -68,6 +70,7 @@ import com.adhrox.tri_xo.ui.theme.Accent3
 import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.BlueLink
 import com.adhrox.tri_xo.ui.theme.CustomTypography
+import com.adhrox.tri_xo.ui.theme.MainColorBackground
 import com.adhrox.tri_xo.ui.theme.Orange1
 import com.adhrox.tri_xo.ui.theme.Orange2
 import kotlin.math.PI
@@ -124,7 +127,7 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
     ) {
         Text(
             modifier = Modifier.padding(top = 24.dp),
-            text = "Game ID",
+            text = stringResource(id = R.string.game_id),
             fontSize = 32.sp,
             fontFamily = FontFamily(
                 Font(R.font.tomorrow_regular, FontWeight.Normal)
@@ -143,6 +146,7 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
                 modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val copiedString = stringResource(id = R.string.copied)
                 Text(
                     text = game.gameId,
                     color = BlueLink,
@@ -152,7 +156,7 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
                         .clickable {
                             clipBoard.setText(AnnotatedString(game.gameId))
                             Toast
-                                .makeText(context, "Copiado", Toast.LENGTH_SHORT)
+                                .makeText(context, copiedString, Toast.LENGTH_SHORT)
                                 .show()
                             shareId(context, game.gameId)
                         }
@@ -162,12 +166,12 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
 
         val status = if (game.isGameReady) {
             if (game.isMyTurn) {
-                "Tu turno"
+                R.string.your_turn
             } else {
-                "Turno rival"
+                R.string.rival_turn
             }
         } else {
-            "Esperando por el jugador 2"
+            R.string.waiting_player_2
         }
         Spacer(modifier = Modifier.height(56.dp))
         Box(
@@ -189,12 +193,14 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
                 modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(text = status, fontSize = 18.sp)
+                Text(text = stringResource(id = status), fontSize = 18.sp)
                 Spacer(modifier = Modifier.width(6.dp))
                 if (!game.isMyTurn || !game.isGameReady) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(18.dp),
-                        trackColor = Orange1,
+                        trackColor = MainColorBackground,
+                        color = Accent2,
+                        strokeWidth = 6.dp
                     )
                 }
             }
@@ -286,17 +292,21 @@ fun EndGameScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(24.dp)
                 ) {
-                    val gameStatusStr = gameStatus.status
+
                     val tryAgainResources = getTryAgainResources(playersTry)
 
-                    if (gameStatus is GameStatus.Won) {
-                        Text(
-                            text = "FELICIDADES!",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Accent3
-                        )
-                    }
+                    //val gameStatusStr = gameStatus.status
+                    val gameStatusStr: String = if (gameStatus is GameStatus.Won) {
+                            Text(
+                                text = stringResource(id = R.string.congratulations),
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Accent3
+                            )
+                            stringResource(id = gameStatus.status ?: R.string.error, gameStatus.player as String)
+                        }else{
+                            stringResource(id = gameStatus.status ?: R.string.error)
+                        }
                     Spacer(modifier = Modifier.height(32.dp))
                     Text(
                         text = gameStatusStr,
@@ -314,7 +324,7 @@ fun EndGameScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Accent2)
                         ) {
                             Text(
-                                text = "Revancha",
+                                text = stringResource(id = R.string.rematch),
                                 color = Color.Black,
                                 style = CustomTypography.bodyLarge
                             )
@@ -338,7 +348,7 @@ fun EndGameScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Accent3)
                     ) {
                         Text(
-                            text = "Volver al inicio",
+                            text = stringResource(id = R.string.back_home),
                             color = Color.Black,
                             style = CustomTypography.bodyLarge
                         )
@@ -405,7 +415,7 @@ fun TableSlot(playerType: PlayerType, angle: Float, onItemSelected: () -> Unit) 
 //------------------------------------------------------------------
 @Composable
 fun TicTacToeBoard(
-    board: List<PlayerType>, // El tablero representado como una lista de listas ('X', 'O', ' ')
+    board: List<BoardCellModel>, // El tablero representado como una lista de listas ('X', 'O', ' ')
     onItemSelected: (Int) -> Unit
     //onCellClick: (index: Int) -> Unit
 ) {
@@ -426,7 +436,8 @@ fun TicTacToeBoard(
         // Colocar los símbolos "X" o "O" en el lugar adecuado
         for (index in board.indices) {
 
-            val playerType = board[index]
+            val boardCell = board[index]
+            val playerType = boardCell.player
             val symbol = playerType.symbol
             val gradientDegList = listOf(315f, 270f, 225f, 0f, null, 180f, 45f, 90f, 135f)
 
@@ -438,7 +449,10 @@ fun TicTacToeBoard(
                     .size(100.dp) // Tamaño de cada celda
                     //.padding(4.dp)
                     .align(Alignment.TopStart)
-                    .offset(x = (col * 100).dp, y = (row * 100).dp) // Ajustar la posición de cada símbolo
+                    .offset(
+                        x = (col * 100).dp,
+                        y = (row * 100).dp
+                    ) // Ajustar la posición de cada símbolo
                     //.border(BorderStroke(2.dp, Color.Black))
                     //.clip(RoundedCornerShape(25))
                     .gradientBackground(
@@ -594,7 +608,7 @@ private fun shareId(context: Context, idGame: String) {
         type = "text/plain"
     }
 
-    val shareIntent = Intent.createChooser(sentIntent, "Compartir ID con...")
+    val shareIntent = Intent.createChooser(sentIntent, "Share ID with...")
     context.startActivity(shareIntent)
 }
 

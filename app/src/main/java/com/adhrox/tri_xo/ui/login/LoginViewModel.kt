@@ -3,6 +3,7 @@ package com.adhrox.tri_xo.ui.login
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adhrox.tri_xo.R
 import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
 import com.adhrox.tri_xo.domain.exceptions.UserAlreadyExistsException
@@ -31,11 +32,12 @@ class LoginViewModel @Inject constructor(private val auth: AuthService): ViewMod
                 if (result) navigateToHome() else Log.i("adhrox", "Error")
 
             } catch (e: Exception){
-                _uiState.update { it.copy(error = "Datos incorrectos") }
+                _uiState.update { it.copy(error = R.string.incorrect_data_error) }
             }
             showLoading(false)
         }
     }
+
     fun signUpAnonymously(navigateToHome: () -> Unit){
         viewModelScope.launch {
             showLoading(true)
@@ -89,5 +91,5 @@ class LoginViewModel @Inject constructor(private val auth: AuthService): ViewMod
 
 data class LoginState(
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: Int? = null
 )

@@ -2,6 +2,7 @@ package com.adhrox.tri_xo.ui.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adhrox.tri_xo.R
 import com.adhrox.tri_xo.data.dto.UserDto
 import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
@@ -55,17 +56,17 @@ class SignUpViewModel @Inject constructor(
                 if (result) navigateToHome()
 
             } catch (e: FirebaseAuthWeakPasswordException) {
-                _uiState.update { it.copy(error = "La contraseña debe tener mas de 6 digitos") }
+                _uiState.update { it.copy(error = R.string.password_length_error) }
             } catch (e: FirebaseAuthInvalidCredentialsException) {
-                _uiState.update { it.copy(error = "Escribe un email valido") }
+                _uiState.update { it.copy(error = R.string.invalid_email_error) }
             } catch (e: UserAlreadyExistsException) {
-                _uiState.update { it.copy(error = "El nombre de usuario ya existe") }
+                _uiState.update { it.copy(error = R.string.username_already_exists_error) }
             } catch (e: UserHasNullEmail) {
-                _uiState.update { it.copy(error = "Hay un problema con los datos del usuario") }
+                _uiState.update { it.copy(error = R.string.problem_user_data_error) }
             } catch (e: FirebaseAuthUserCollisionException) {
-                _uiState.update { it.copy(error = "Ya existe un usuario vinculado al email") }
+                _uiState.update { it.copy(error = R.string.already_user_linked_email_error) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Error desconocido") }
+                _uiState.update { it.copy(error = R.string.unknown_error) }
             }
             showLoading(false)
         }
@@ -111,7 +112,7 @@ data class AddNewUser(
     val isPasswordMatch: Boolean = false,
     val isValidUserName: Boolean = true,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: Int? = null
 ) {
     fun isValidUser() =
         user.isNotBlank() && email.isNotBlank() && password.isNotBlank() && isPasswordMatch && isValidUserName

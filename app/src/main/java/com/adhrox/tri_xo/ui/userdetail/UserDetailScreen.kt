@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -87,27 +88,27 @@ fun UserDetailScreen(
                     PieChartItem(
                         color = Orange1,
                         value = userInfo.gamesInfo["win"]!!,
-                        description = "Win"
+                        description = stringResource(id = R.string.win_stat)
                     ),
                     PieChartItem(
                         color = Color.DarkGray,
                         value = userInfo.gamesInfo["tie"]!!,
-                        description = "Tie"
+                        description = stringResource(id = R.string.tie_stat)
                     ),
                     PieChartItem(
                         color = BlueLink,
                         value = userInfo.gamesInfo["lose"]!!,
-                        description = "Lose"
+                        description = stringResource(id = R.string.lose_stat)
                     )
                 ),
-                centerText = "Total\n${userInfo.gamesInfo["total"]!!}"
+                centerText = "${stringResource(id = R.string.total_stat)}\n${userInfo.gamesInfo["total"]!!}"
             )
         }
     }
 }
 
 @Composable
-fun Header(userName: String, userEmail: String = "adcom3@hotmail.com"){
+fun Header(userName: String, userEmail: String){
     Box(
         modifier = Modifier
             .padding(top = 24.dp)

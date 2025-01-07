@@ -1,17 +1,13 @@
 package com.adhrox.tri_xo.domain.model
 
-/*
-sealed class GameStatus {
-    data class Won(val player: PlayerType, val status: String = "ganador $player") : GameStatus()
-    data class Tie(val status: String = "Empate") : GameStatus()
-    data object Ongoing : GameStatus()
-}*/
+import androidx.compose.ui.res.stringResource
+import com.adhrox.tri_xo.R
 
-sealed class GameStatus(val player: String? = null, val status: String = "") {
-    class Won(player: String?, status: String = "Ganador\n$player"): GameStatus(player, status)
-    class Tie(status: String = "Empate") : GameStatus(status = status)
-    class Ongoing(status: String = "En progreso") : GameStatus(status = status)
-    class Finished(status: String = "Partida finalizada"): GameStatus(status = status)
+sealed class GameStatus(val player: String? = null, val status: Int? = null) {
+    class Won(player: String?, status: Int = R.string.winner_status): GameStatus(player, status)
+    class Tie(status: Int = R.string.tie_game_status) : GameStatus(status = status)
+    class Ongoing(status: Int = R.string.in_progress_game_status) : GameStatus(status = status)
+    class Finished(status: Int = R.string.game_finished_status): GameStatus(status = status)
 
     fun toEnumValue(): String{
         return when (this){

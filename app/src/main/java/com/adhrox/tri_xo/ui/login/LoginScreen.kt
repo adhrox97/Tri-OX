@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -74,7 +75,7 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
-
+    val errorOccurredString = stringResource(id = R.string.error_occurred)
     val googleLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -83,13 +84,13 @@ fun LoginScreen(
                     val account = task.getResult(ApiException::class.java)!!
                     loginViewModel.loginWithGoogle(account.idToken!!) { navigateToHome() }
                 } catch (e: ApiException) {
-                    toastMessage(context, "Ha ocurrido un error: ${e.message}")
+                    toastMessage(context, "$errorOccurredString: ${e.message}")
                 }
             }
         }
 
     uiStatus.error?.let {
-        toastMessage(context, it)
+        toastMessage(context, stringResource(id = it))
         loginViewModel.resetErrorStatus()
     }
 
@@ -102,13 +103,13 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Bienvenido,",
+            text = "${stringResource(id = R.string.welcome)},",
             color = Color.White,
             fontWeight = FontWeight.Bold,
             fontSize = 38.sp
         )
         Text(
-            text = "Encantado de verte",
+            text = stringResource(id = R.string.greetings),
             color = Color.White,
             fontWeight = FontWeight.Light,
             fontSize = 38.sp
@@ -120,7 +121,7 @@ fun LoginScreen(
             onValueChange = { email = it },
             label = {
                 Text(
-                    text = "Email",
+                    text = stringResource(id = R.string.email),
                     fontSize = 14.sp
                 )
             },
@@ -139,7 +140,12 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             value = password,
             onValueChange = { password = it },
-            label = { Text(text = "Contraseña", fontSize = 14.sp) },
+            label = {
+                Text(
+                    text = stringResource(id = R.string.password),
+                    fontSize = 14.sp
+                )
+            },
             visualTransformation = PasswordVisualTransformation(),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = BgText2,
@@ -162,7 +168,7 @@ fun LoginScreen(
             onClick = { loginViewModel.login(email, password) { navigateToHome() } }
         ) {
             Text(
-                text = "Iniciar sesion",
+                text = stringResource(id = R.string.login),
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
                 fontSize = 20.sp
@@ -179,7 +185,7 @@ fun LoginScreen(
             onClick = { navigateToSignUp() }
         ) {
             Text(
-                text = "Registrarse",
+                text = stringResource(id = R.string.sign_up),
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
                 color = Color.White
@@ -193,7 +199,7 @@ fun LoginScreen(
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
                 modifier = Modifier.padding(horizontal = 8.dp),
-                text = "Ó iniciar sesion con",
+                text = stringResource(id = R.string.another_way_login),
                 fontWeight = FontWeight.ExtraLight,
                 fontSize = 18.sp,
                 color = Color.White

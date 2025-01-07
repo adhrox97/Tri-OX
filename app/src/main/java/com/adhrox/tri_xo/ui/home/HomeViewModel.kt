@@ -2,24 +2,20 @@ package com.adhrox.tri_xo.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adhrox.tri_xo.data.network.model.BoardCellData
 import com.adhrox.tri_xo.data.network.model.GameData
 import com.adhrox.tri_xo.data.network.model.PlayerData
-import com.adhrox.tri_xo.domain.AuthService
 import com.adhrox.tri_xo.domain.Repository
 import com.adhrox.tri_xo.domain.model.GameStatusEnum
 import com.adhrox.tri_xo.domain.model.GameVerificationResult
 import com.adhrox.tri_xo.domain.model.UserModel
-import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,8 +33,8 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
         }
     }
 
-    fun onCreateGame(navigateToGame: (String, String, Boolean) -> Unit) {
-        val game = createNewGame()
+    fun onCreateGame(gameMode: String, navigateToGame: (String, String, Boolean) -> Unit) {
+        val game = createNewGame(gameMode)
         val gameId = repository.createGame(game)
         val userName = game.player1?.userName.orEmpty()
         val owner = true
@@ -65,14 +61,16 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
         return Calendar.getInstance().timeInMillis.hashCode().toString()
     }*/
 
-    private fun createNewGame(): GameData {
+    private fun createNewGame(gameMode: String): GameData {
         val currentPlayer = PlayerData(userName = _gameState.value.user.userName, playerType = 2, tryAgain = false)
 
         return GameData(
-            board = List(9) { 0 },
+            //board = List(9) { 0 },
+            board = List(9) { BoardCellData(0, 0L) },
             player1 = currentPlayer,
             player2 = null,
             playerTurn = currentPlayer,
+            gameMode = gameMode,
             status = GameStatusEnum.ONGOING.value
         )
     }

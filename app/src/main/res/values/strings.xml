@@ -1,4 +1,55 @@
 <resources>
-    <string name="app_name">Tri-XO</string>
+    <string name="app_name" translatable="false">Tri-XO</string>
+    <string name="standard_mode">Standard</string>
+    <string name="limited_mode">Limited</string>
+    <string name="create_game">Create game</string>
+    <string name="welcome">Welcome</string>
+    <string name="mode">Mode</string>
+    <string name="type_game_id">Type an ID</string>
+    <string name="join_game">Join to game</string>
+    <string name="selected_mode">Mode selected</string>
+    <string name="game_found_status">Match found</string>
+    <string name="game_full_status">Full game</string>
+    <string name="game_not_found_status">Game not found</string>
+    <string name="game_finished_status">Game Finished</string>
+    <string name="game_id">Game ID</string>
+    <string name="copied">Copied</string>
+    <string name="your_turn">your turn</string>
+    <string name="rival_turn">Rival turn</string>
+    <string name="waiting_player_2">Waiting for player 2</string>
+    <string name="congratulations">Congratulations!</string>
+    <string name="winner_game_status">Winner</string>
+    <string name="tie_game_status">Tie</string>
+    <string name="in_progress_game_status">In progress</string>
+    <string name="rematch">rematch</string>
+    <string name="back_home">Back to home</string>
+    <string name="win_stat">Win</string>
+    <string name="lose_stat">Lose</string>
+    <string name="tie_stat">Tie</string>
+    <string name="total_stat">Total</string>
+    <string name="greetings">Nice to see you</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Log in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="another_way_login">Or log in with</string>
+    <string name="error_occurred">An error has occurred</string>
+    <string name="incorrect_data_error">Incorrect data</string>
+    <string name="password_length_error">Password must be longer than 6 digits</string>
+    <string name="invalid_email_error">Enter a valid email address</string>
+    <string name="username_already_exists_error">Username already exists</string>
+    <string name="problem_user_data_error">There is a problem with the user data</string>
+    <string name="already_user_linked_email_error">There is already a user linked to the email</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="Create_account">Create an account</string>
+    <string name="start_now">to start now!</string>
+    <string name="username_label">Username</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="repeat_password_label">Repeat password</string>
+    <string name="username_symbols_error">The username must not contain the symbols “\\\” or “-” or “:” or spaces</string>
+    <string name="password_not_match_error">Password does not match</string>
+    <string name="winner_status">Winner %s</string>
+    <string name="error">Error</string>
     <string name="default_web_client_id" translatable="false">985185506256-tp6bsskjvfi0c3a302rqd047aq46s6t5.apps.googleusercontent.com</string>
 </resources>

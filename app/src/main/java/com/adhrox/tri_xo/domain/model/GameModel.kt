@@ -1,17 +1,20 @@
 package com.adhrox.tri_xo.domain.model
 
+import com.adhrox.tri_xo.data.network.model.BoardCellData
 import com.adhrox.tri_xo.data.network.model.GameData
 import com.adhrox.tri_xo.data.network.model.PlayerData
 import java.util.Calendar
 
 data class GameModel(
-    val board: List<PlayerType>,
+    //val board: List<PlayerType>,
+    val board: List<BoardCellModel>,
     val player1: PlayerModel,
     val player2: PlayerModel?,
     val playerTurn: PlayerModel,
     val gameId: String,
     val isGameReady: Boolean = false,
     val isMyTurn: Boolean = false,
+    val gameMode: GameMode,
     val status: GameStatus
 ) {
     fun canTryAgain(): Boolean{
@@ -24,12 +27,24 @@ data class GameModel(
 }
 
 fun GameData.toModel() = GameModel(
-    board = board?.map { PlayerType.getPlayerById(it) } ?: mutableListOf(),
+    //board = board?.map { PlayerType.getPlayerById(it) } ?: mutableListOf(),
+    board = board?.map { it?.toModel() ?: BoardCellModel(PlayerType.getPlayerById(it?.player), 0L) } ?: mutableListOf(),
     gameId = gameId.orEmpty(),
     player1 = player1!!.toModel(),
     player2 = player2?.toModel(),
     playerTurn = playerTurn!!.toModel(),
-    status = GameStatus.fromEnum(status ?: "Ongoing")
+    gameMode = GameMode.fromEnum(gameMode ?: GameModeEnum.STANDARD.name),
+    status = GameStatus.fromEnum(status ?: GameStatusEnum.ONGOING.value)
+)
+
+data class BoardCellModel(
+    val player: PlayerType,
+    val timeStamp: Long
+)
+
+fun BoardCellData.toModel() = BoardCellModel(
+    player = PlayerType.getPlayerById(player),
+    timeStamp = timeStamp ?: 0L
 )
 
 data class PlayerModel(

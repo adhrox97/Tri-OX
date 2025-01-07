@@ -27,7 +27,6 @@ import com.adhrox.tri_xo.ui.userdetail.UserDetailScreen
 @Composable
 fun ContentWrapper(navigationController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController = navigationController, startDestination = Splash.route) {
-
         composable(Splash.route) {
             SplashScreen(
                 modifier = modifier,

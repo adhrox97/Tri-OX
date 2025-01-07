@@ -6,9 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.adhrox.tri_xo.data.network.model.BoardCellData
 import com.adhrox.tri_xo.data.network.model.toData
 import com.adhrox.tri_xo.data.network.workers.CancelGameWorker
 import com.adhrox.tri_xo.domain.Repository
+import com.adhrox.tri_xo.domain.model.BoardCellModel
+import com.adhrox.tri_xo.domain.model.GameMode
 import com.adhrox.tri_xo.domain.model.GameModel
 import com.adhrox.tri_xo.domain.model.GameStatus
 import com.adhrox.tri_xo.domain.model.PlayerModel
@@ -101,13 +104,19 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
 
     fun onItemSelected(position: Int) {
         val currentGame = _game.value ?: return
-        if (currentGame.isGameReady && currentGame.board[position] == PlayerType.Empty && isMyTurn(
+        //if (currentGame.isGameReady && currentGame.board[position] == PlayerType.Empty && isMyTurn(
+        if (currentGame.isGameReady && currentGame.board[position].player == PlayerType.Empty && isMyTurn(
                 currentGame.playerTurn
             )
         ) {
             viewModelScope.launch {
-                val newBoard = currentGame.board.toMutableList()
-                newBoard[position] = getPlayer() ?: PlayerType.Empty
+                var newBoard = currentGame.board.toMutableList()
+                val player = currentGame.playerTurn.playerType
+                newBoard[position] = newBoard[position].copy(player = getPlayer() ?: PlayerType.Empty, timeStamp = System.currentTimeMillis())
+
+                if(currentGame.gameMode is GameMode.Limited){
+                    newBoard = removeOldestMove(newBoard, player)
+                }
                 repository.updateGame(
                     currentGame.copy(
                         board = newBoard,
@@ -116,6 +125,20 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
                 )
             }
         }
+    }
+
+    private fun removeOldestMove(board:MutableList<BoardCellModel>, playerType: PlayerType): MutableList<BoardCellModel> {
+        val playerMoves = board
+            .mapIndexed { index, boardCell -> index to boardCell}
+            .filter { it.second.player.id == playerType.id}
+            .sortedBy { it.second.timeStamp }
+
+        if (playerMoves.size > 3) {
+            val (oldestIndex, _) = playerMoves.first()
+            board[oldestIndex] = BoardCellModel(PlayerType.Empty, 0L)
+        }
+
+        return board
     }
 
     private fun verifyWinner() {
@@ -157,20 +180,20 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
         }
     }
 
-    private fun isGameWon(board: List<PlayerType>): GameStatus {
+    private fun isGameWon(board: List<BoardCellModel>): GameStatus {
         fun checkWin(playerType: PlayerType): Boolean {
             return when {
                 //Row
-                (board[0] == playerType && board[1] == playerType && board[2] == playerType) -> true
-                (board[3] == playerType && board[4] == playerType && board[5] == playerType) -> true
-                (board[6] == playerType && board[7] == playerType && board[8] == playerType) -> true
+                (board[0].player == playerType && board[1].player == playerType && board[2].player == playerType) -> true
+                (board[3].player == playerType && board[4].player == playerType && board[5].player == playerType) -> true
+                (board[6].player == playerType && board[7].player == playerType && board[8].player == playerType) -> true
                 //Column
-                (board[0] == playerType && board[3] == playerType && board[6] == playerType) -> true
-                (board[1] == playerType && board[4] == playerType && board[7] == playerType) -> true
-                (board[2] == playerType && board[5] == playerType && board[8] == playerType) -> true
+                (board[0].player == playerType && board[3].player == playerType && board[6].player == playerType) -> true
+                (board[1].player == playerType && board[4].player == playerType && board[7].player == playerType) -> true
+                (board[2].player == playerType && board[5].player == playerType && board[8].player == playerType) -> true
                 //Diagonal
-                (board[0] == playerType && board[4] == playerType && board[8] == playerType) -> true
-                (board[2] == playerType && board[4] == playerType && board[6] == playerType) -> true
+                (board[0].player == playerType && board[4].player == playerType && board[8].player == playerType) -> true
+                (board[2].player == playerType && board[4].player == playerType && board[6].player == playerType) -> true
                 else -> false
             }
         }
@@ -178,7 +201,7 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
         return when {
             checkWin(PlayerType.FirstPlayer) -> GameStatus.Won(_game.value?.player1?.userName)
             checkWin(PlayerType.SecondPlayer) -> GameStatus.Won(_game.value?.player2?.userName)
-            board.all { it != PlayerType.Empty } -> GameStatus.Tie()
+            board.all { it.player != PlayerType.Empty } -> GameStatus.Tie()
             else -> GameStatus.Ongoing()
         }
     }
@@ -196,7 +219,8 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
     private fun restartGame() {
         val currentGame = _game.value ?: return
         if (currentGame.canTryAgain()) {
-            val restartedBoard = currentGame.board.map { PlayerType.Empty }.toMutableList()
+            //val restartedBoard = currentGame.board.map { PlayerType.Empty }.toMutableList()
+            val restartedBoard = List(9) { BoardCellModel(PlayerType.Empty, 0L) }.toMutableList()
             repository.updateGame(
                 currentGame.copy(
                     board = restartedBoard,

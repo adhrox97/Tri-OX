@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -55,12 +56,11 @@ import com.adhrox.tri_xo.ui.theme.BgText2
 import com.adhrox.tri_xo.ui.theme.Orange1
 import com.adhrox.tri_xo.ui.theme.Orange2
 
-@Preview
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     signUpViewModel: SignUpViewModel = hiltViewModel(),
-    navigateToHome: () -> Unit = {  }
+    navigateToHome: () -> Unit
 ) {
     var user by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -88,7 +88,7 @@ fun SignUpScreen(
     }*/
 
     uiStatus.error?.let {
-        toastMessage(LocalContext.current, it)
+        toastMessage(LocalContext.current, stringResource(id = it))
         signUpViewModel.resetErrorStatus()
     }
 
@@ -98,7 +98,7 @@ fun SignUpScreen(
             //.background(Background)
             .padding(12.dp)
     ) {
-        IconButton(
+        /*IconButton(
             modifier = Modifier.padding(top = 20.dp),
             onClick = { }
         ) {
@@ -107,8 +107,8 @@ fun SignUpScreen(
                 painter = painterResource(id = R.drawable.ic_back),
                 contentDescription = ""
             )
-        }
-        Spacer(modifier = Modifier.height(48.dp))
+        }*/
+        Spacer(modifier = Modifier.height(84.dp))
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -117,7 +117,7 @@ fun SignUpScreen(
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Crea una cuenta",
+                text = stringResource(id = R.string.Create_account),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 38.sp,
@@ -125,7 +125,7 @@ fun SignUpScreen(
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "para comenzar ahora!",
+                text = stringResource(id = R.string.start_now),
                 color = Color.White,
                 fontWeight = FontWeight.Light,
                 fontSize = 38.sp,
@@ -139,11 +139,12 @@ fun SignUpScreen(
                     signUpViewModel.onUserChange(it)
                 },
                 leadingIconImageVector = Icons.Default.AccountBox,
-                textLabel = "Nombre de usuario"
+                textLabel = stringResource(id = R.string.username_label)
             )
             if (!uiStatus.isValidUserName){
                 Text(
-                    text = "El Nombre de usuario no debe contener los simbolos \"\\\" ó \"-\" ó \":\" ó espacios",
+                    text = stringResource(id = R.string.username_symbols_error),
+                    //text = "El Nombre de usuario no debe contener los simbolos \"\\\" ó \"-\" ó \":\" ó espacios",
                     color = Accent3,
                     fontWeight = FontWeight.Light
                 )
@@ -155,7 +156,7 @@ fun SignUpScreen(
                     signUpViewModel.onEmailChange(it)
                 },
                 leadingIconImageVector = Icons.Default.Email,
-                textLabel = "Correo electrónico"
+                textLabel = stringResource(id = R.string.email_label)
             )
             OutlinedTextForm(
                 value = password,
@@ -164,7 +165,7 @@ fun SignUpScreen(
                     signUpViewModel.onPasswordChange(it)
                 },
                 leadingIconImageVector = Icons.Default.Lock,
-                textLabel = "Contraseña",
+                textLabel = stringResource(id = R.string.password_label),
                 visualTransformation = PasswordVisualTransformation(),
             )
             OutlinedTextForm(
@@ -174,12 +175,12 @@ fun SignUpScreen(
                     signUpViewModel.onRepeatPasswordChange(it)
                 },
                 leadingIconImageVector = Icons.Default.Lock,
-                textLabel = "Repetir contraseña",
+                textLabel = stringResource(id = R.string.repeat_password_label),
                 visualTransformation = PasswordVisualTransformation(),
             )
             if (!uiStatus.isPasswordMatch){
                 Text(
-                    text = "La contraseña no coincide",
+                    text = stringResource(id = R.string.password_not_match_error),
                     color = Accent3,
                     fontWeight = FontWeight.Light
                 )
@@ -196,7 +197,7 @@ fun SignUpScreen(
                 enabled = uiStatus.isValidUser()
             ) {
                 Text(
-                    text = "Registrarse",
+                    text = stringResource(id = R.string.sign_up),
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black,
                     fontSize = 20.sp
