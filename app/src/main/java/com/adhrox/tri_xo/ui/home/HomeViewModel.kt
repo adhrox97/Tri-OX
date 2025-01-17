@@ -57,15 +57,10 @@ class HomeViewModel @Inject constructor(private val repository: Repository): Vie
         _gameState.update { it.copy(gameVerification = result) }
     }
 
-    /*private fun createUserId(): String{
-        return Calendar.getInstance().timeInMillis.hashCode().toString()
-    }*/
-
     private fun createNewGame(gameMode: String): GameData {
         val currentPlayer = PlayerData(userName = _gameState.value.user.userName, playerType = 2, tryAgain = false)
 
         return GameData(
-            //board = List(9) { 0 },
             board = List(9) { BoardCellData(0, 0L) },
             player1 = currentPlayer,
             player2 = null,

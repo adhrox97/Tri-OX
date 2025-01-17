@@ -83,7 +83,6 @@ fun ContentWrapper(navigationController: NavHostController, modifier: Modifier =
         ){
             composable(Home.route) { entry ->
                 val viewModel = entry.sharedViewModel<HomeViewModel>(navigationController,)
-                //val state by viewModel.gameState.collectAsState()
                 HomeScreen(
                     modifier = modifier,
                     homeViewModel = viewModel,

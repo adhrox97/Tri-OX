@@ -27,7 +27,10 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class GameViewModel @Inject constructor(private val repository: Repository, private val workManager: WorkManager) : ViewModel() {
+class GameViewModel @Inject constructor(
+    private val repository: Repository,
+    private val workManager: WorkManager
+) : ViewModel() {
 
     companion object {
         private const val STAT_WIN = "win"
@@ -36,24 +39,18 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
         private const val STAT_TOTAL = "total"
     }
 
-    //private lateinit var userName: String
     private lateinit var user: UserModel
 
     private val _game = MutableStateFlow<GameModel?>(null)
     val game: StateFlow<GameModel?> = _game
 
-    private val _gameStatus = MutableStateFlow<GameStatus>(GameStatus.Ongoing())
-    val gameStatus: StateFlow<GameStatus> = _gameStatus
-
     override fun onCleared() {
         super.onCleared()
-        //cancelGame()
         scheduleCancelGameWorker()
     }
 
-    fun joinToGame(gameId: String, userName: String, owner: Boolean) {
+    fun joinToGame(gameId: String, owner: Boolean) {
         viewModelScope.launch {
-            //this@GameViewModel.userName = userName
             this@GameViewModel.user =
                 withContext(Dispatchers.IO) { repository.getCurrentUserModel() }
             if (owner) {
@@ -71,7 +68,7 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
                 val result =
                     it?.copy(isGameReady = it.player2 != null, isMyTurn = isMyTurn(it.playerTurn))
                 _game.value = result
-                if (isBoardChange){
+                if (isBoardChange) {
                     verifyWinner()
                 }
                 restartGame()
@@ -104,7 +101,6 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
 
     fun onItemSelected(position: Int) {
         val currentGame = _game.value ?: return
-        //if (currentGame.isGameReady && currentGame.board[position] == PlayerType.Empty && isMyTurn(
         if (currentGame.isGameReady && currentGame.board[position].player == PlayerType.Empty && isMyTurn(
                 currentGame.playerTurn
             )
@@ -112,9 +108,12 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
             viewModelScope.launch {
                 var newBoard = currentGame.board.toMutableList()
                 val player = currentGame.playerTurn.playerType
-                newBoard[position] = newBoard[position].copy(player = getPlayer() ?: PlayerType.Empty, timeStamp = System.currentTimeMillis())
+                newBoard[position] = newBoard[position].copy(
+                    player = getPlayer() ?: PlayerType.Empty,
+                    timeStamp = System.currentTimeMillis()
+                )
 
-                if(currentGame.gameMode is GameMode.Limited){
+                if (currentGame.gameMode is GameMode.Limited) {
                     newBoard = removeOldestMove(newBoard, player)
                 }
                 repository.updateGame(
@@ -127,10 +126,13 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
         }
     }
 
-    private fun removeOldestMove(board:MutableList<BoardCellModel>, playerType: PlayerType): MutableList<BoardCellModel> {
+    private fun removeOldestMove(
+        board: MutableList<BoardCellModel>,
+        playerType: PlayerType
+    ): MutableList<BoardCellModel> {
         val playerMoves = board
-            .mapIndexed { index, boardCell -> index to boardCell}
-            .filter { it.second.player.id == playerType.id}
+            .mapIndexed { index, boardCell -> index to boardCell }
+            .filter { it.second.player.id == playerType.id }
             .sortedBy { it.second.timeStamp }
 
         if (playerMoves.size > 3) {
@@ -144,8 +146,6 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
     private fun verifyWinner() {
         val board = _game.value?.board
         if (board != null && board.size == 9) {
-            /*_gameStatus.value = isGameWon(board)
-            updatePlayerStats(_gameStatus.value)*/
             val status = isGameWon(board)
             updateGamesStatus(status)
             updatePlayerStats(status)
@@ -219,7 +219,6 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
     private fun restartGame() {
         val currentGame = _game.value ?: return
         if (currentGame.canTryAgain()) {
-            //val restartedBoard = currentGame.board.map { PlayerType.Empty }.toMutableList()
             val restartedBoard = List(9) { BoardCellModel(PlayerType.Empty, 0L) }.toMutableList()
             repository.updateGame(
                 currentGame.copy(
@@ -228,18 +227,9 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
                     player2 = currentGame.player2?.copy(tryAgain = false)
                 ).toData()
             )
-            //_gameStatus.value = GameStatus.Ongoing()
             updateGamesStatus(GameStatus.Ongoing())
         }
     }
-
-    /*private fun canTryAgain(game: GameModel): Boolean{
-        return if (game.player2 != null){
-            game.player1.tryAgain && game.player1.tryAgain
-        } else {
-            false
-        }
-    }*/
 
     private fun getPlayer(): PlayerType? {
         return when {
@@ -253,17 +243,13 @@ class GameViewModel @Inject constructor(private val repository: Repository, priv
         return if (game.value?.player1?.userName == user.userName) game.value?.player2 else game.value?.player1
     }
 
-    /*private fun cancelGame(){
-        updateGamesStatus(GameStatus.Finished())
-    }*/
-
-    private fun updateGamesStatus(gameStatus: GameStatus){
+    private fun updateGamesStatus(gameStatus: GameStatus) {
         _game.value?.let {
             repository.updateGameStatus(it.gameId, gameStatus.toEnumValue())
         }
     }
 
-    private fun scheduleCancelGameWorker(){
+    private fun scheduleCancelGameWorker() {
         _game.value?.let {
             val inputData = workDataOf(CancelGameWorker.KEY_GAME_ID to it.gameId)
 

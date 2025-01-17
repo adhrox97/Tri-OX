@@ -2,11 +2,8 @@ package com.adhrox.tri_xo.ui.home
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,14 +25,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,35 +42,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.ImageShader
-import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
 import com.adhrox.tri_xo.domain.model.GameModeEnum
-import com.adhrox.tri_xo.domain.model.GameVerificationResult.*
-import com.adhrox.tri_xo.ui.theme.Accent
-import com.adhrox.tri_xo.ui.theme.Accent2
-import com.adhrox.tri_xo.ui.theme.Accent3
-import com.adhrox.tri_xo.ui.theme.Background
-import com.adhrox.tri_xo.ui.theme.BgText2
+import com.adhrox.tri_xo.ui.theme.Accent1
 import com.adhrox.tri_xo.ui.theme.CustomTypography
 import com.adhrox.tri_xo.ui.theme.MainColorBackground
-import com.adhrox.tri_xo.ui.theme.Orange1
-import com.adhrox.tri_xo.ui.theme.Orange2
-import kotlinx.coroutines.coroutineScope
 
 @Composable
 fun HomeScreen(
@@ -104,7 +80,6 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxSize()
-        //.background(Background)
     ) {
         Header(gameState.user.userName, gameState.isLoading, navigateToDetail)
         Body(
@@ -118,7 +93,7 @@ fun HomeScreen(
             CircularProgressIndicator(
                 modifier = Modifier.size(42.dp),
                 trackColor = MainColorBackground,
-                color = Accent2,
+                color = Accent1,
                 strokeWidth = 6.dp
             )
         }
@@ -237,8 +212,6 @@ fun JoinGame(onJoinGame: (String) -> Unit) {
         onValueChange = { text = it },
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            //focusedTextColor = Accent,
-            unfocusedTextColor = Accent,
             focusedContainerColor = Color.White,
             unfocusedContainerColor = Color.White,
             focusedBorderColor = Color(0xFFE4B702),
@@ -269,7 +242,6 @@ fun JoinGame(onJoinGame: (String) -> Unit) {
         )
     }
 }
-//}
 
 @Composable
 fun GameModeSelector(

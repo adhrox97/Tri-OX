@@ -32,38 +32,15 @@ fun SplashScreen(
         }
     }
 
-    /*val infiniteTransition = rememberInfiniteTransition()
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 10000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )*/
-    
-    /*Box(modifier = Modifier.fillMaxSize()){
-        Image(
-            painter = painterResource(id = R.drawable.bg_app1),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.matchParentSize()
-        )
-    }*/
-
     Column(
         modifier = modifier
             .fillMaxSize(),
-            //background(Background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
                 .size(275.dp),
-                //.padding(6.dp),
-                //.clip(RoundedCornerShape(50))
-                //.border(4.dp, PurpleTriqui, RoundedCornerShape(50)),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -72,8 +49,6 @@ fun SplashScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(12.dp)
-                    //.rotate(rotation)
-                    //.padding(bottom = 36.dp)
             )
         }
     }

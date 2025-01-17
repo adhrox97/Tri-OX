@@ -7,7 +7,6 @@ import com.adhrox.tri_xo.domain.model.PlayerModel
 import java.util.Calendar
 
 data class GameData(
-    //val board: List<Int?>? = null,
     val board: List<BoardCellData?>? = null,
     val gameId: String? = null,
     val player1: PlayerData? = null,
@@ -18,7 +17,6 @@ data class GameData(
 )
 
 fun GameModel.toData() = GameData(
-    //board = board.map { it.id },
     board = board.map { it.toData() },
     gameId = gameId,
     player1 = player1.toData(),

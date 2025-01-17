@@ -6,7 +6,6 @@ import com.adhrox.tri_xo.data.network.model.PlayerData
 import java.util.Calendar
 
 data class GameModel(
-    //val board: List<PlayerType>,
     val board: List<BoardCellModel>,
     val player1: PlayerModel,
     val player2: PlayerModel?,
@@ -27,7 +26,6 @@ data class GameModel(
 }
 
 fun GameData.toModel() = GameModel(
-    //board = board?.map { PlayerType.getPlayerById(it) } ?: mutableListOf(),
     board = board?.map { it?.toModel() ?: BoardCellModel(PlayerType.getPlayerById(it?.player), 0L) } ?: mutableListOf(),
     gameId = gameId.orEmpty(),
     player1 = player1!!.toModel(),
@@ -48,7 +46,7 @@ fun BoardCellData.toModel() = BoardCellModel(
 )
 
 data class PlayerModel(
-    val userName: String? = null,//Calendar.getInstance().timeInMillis.hashCode().toString(),
+    val userName: String? = null,
     val playerType: PlayerType,
     val tryAgain: Boolean
 )

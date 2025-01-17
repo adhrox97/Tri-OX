@@ -7,7 +7,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -37,7 +36,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -55,7 +53,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -64,15 +61,12 @@ import com.adhrox.tri_xo.domain.model.BoardCellModel
 import com.adhrox.tri_xo.domain.model.GameModel
 import com.adhrox.tri_xo.domain.model.GameStatus
 import com.adhrox.tri_xo.domain.model.PlayerType
-import com.adhrox.tri_xo.ui.theme.Accent
+import com.adhrox.tri_xo.ui.theme.Accent1
 import com.adhrox.tri_xo.ui.theme.Accent2
-import com.adhrox.tri_xo.ui.theme.Accent3
-import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.BlueLink
+import com.adhrox.tri_xo.ui.theme.ColorBoard
 import com.adhrox.tri_xo.ui.theme.CustomTypography
 import com.adhrox.tri_xo.ui.theme.MainColorBackground
-import com.adhrox.tri_xo.ui.theme.Orange1
-import com.adhrox.tri_xo.ui.theme.Orange2
 import kotlin.math.PI
 import kotlin.math.pow
 
@@ -86,11 +80,10 @@ fun GameScreen(
     navigateToHome: () -> Unit
 ) {
     LaunchedEffect(key1 = false) {
-        gameViewModel.joinToGame(gameId, userName, owner)
+        gameViewModel.joinToGame(gameId, owner)
     }
 
     val game: GameModel? by gameViewModel.game.collectAsState()
-    //val gameStatus: GameStatus by gameViewModel.gameStatus.collectAsState()
 
     if (game?.status !is GameStatus.Ongoing && game != null) {
         EndGameScreen(
@@ -182,7 +175,7 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
                 .background(
                     Brush.horizontalGradient(
                         colorStops = arrayOf(
-                            0f to Accent3,
+                            0f to Accent2,
                             0.6f to Color(0xFF807F7F),
                             1f to Color(0x00FFFFFF)
                         )
@@ -199,69 +192,14 @@ fun Board(modifier: Modifier = Modifier, game: GameModel?, onItemSelected: (Int)
                     CircularProgressIndicator(
                         modifier = Modifier.size(18.dp),
                         trackColor = MainColorBackground,
-                        color = Accent2,
+                        color = Accent1,
                         strokeWidth = 6.dp
                     )
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(84.dp))
-
-        /*Row {
-            GameItem(game.board[0]) { onItemSelected(0) }
-            GameItem(game.board[1]) { onItemSelected(1) }
-            GameItem(game.board[2]) { onItemSelected(2) }
-        }
-        Row {
-            GameItem(game.board[3]) { onItemSelected(3) }
-            GameItem(game.board[4]) { onItemSelected(4) }
-            GameItem(game.board[5]) { onItemSelected(5) }
-        }
-        Row {
-            GameItem(game.board[6]) { onItemSelected(6) }
-            GameItem(game.board[7]) { onItemSelected(7) }
-            GameItem(game.board[8]) { onItemSelected(8) }
-        }*/
-
-        //PreviewTicTacToeBoard()
         TicTacToeBoard(game.board, onItemSelected)
-
-        /*Row {
-            TableSlot(game.board[0], 315f) { onItemSelected(0) }
-            TableSlot(game.board[1], 270f) { onItemSelected(1) }
-            TableSlot(game.board[2], 225f) { onItemSelected(2) }
-        }
-        Row {
-            TableSlot(game.board[3], 0f)   { onItemSelected(3) }
-            TableSlot(game.board[4], 135f) { onItemSelected(4) }
-            TableSlot(game.board[5], 180f) { onItemSelected(5) }
-        }
-        Row {
-            TableSlot(game.board[6], 45f)  { onItemSelected(6) }
-            TableSlot(game.board[7], 90f)  { onItemSelected(7) }
-            TableSlot(game.board[8], 135f) { onItemSelected(8) }
-        }*/
-    }
-}
-
-@Composable
-fun GameItem(playerType: PlayerType, onItemSelected: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .padding(12.dp)
-            .size(64.dp)
-            .border(BorderStroke(2.dp, Accent))
-            .clickable { onItemSelected() },
-        contentAlignment = Alignment.Center
-    ) {
-        AnimatedContent(targetState = playerType.symbol, label = "") {
-            Text(
-                text = it,
-                color = if (playerType is PlayerType.FirstPlayer) Orange2 else Orange1,
-                fontSize = 22.sp
-            )
-        }
     }
 }
 
@@ -275,7 +213,6 @@ fun EndGameScreen(
     Box(
         modifier = Modifier
             .fillMaxSize(),
-            //.background(Background),
         contentAlignment = Alignment.Center
     ) {
         Card(
@@ -284,7 +221,7 @@ fun EndGameScreen(
                 .wrapContentHeight()
                 .padding(24.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White.copy(0.3f)),
-            border = BorderStroke(2.dp, Accent3),
+            border = BorderStroke(2.dp, Accent2),
             shape = RoundedCornerShape(12.dp)
         ) {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
@@ -297,23 +234,26 @@ fun EndGameScreen(
 
                     //val gameStatusStr = gameStatus.status
                     val gameStatusStr: String = if (gameStatus is GameStatus.Won) {
-                            Text(
-                                text = stringResource(id = R.string.congratulations),
-                                fontSize = 28.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Accent3
-                            )
-                            stringResource(id = gameStatus.status ?: R.string.error, gameStatus.player as String)
-                        }else{
-                            stringResource(id = gameStatus.status ?: R.string.error)
-                        }
+                        Text(
+                            text = stringResource(id = R.string.congratulations),
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Accent2
+                        )
+                        stringResource(
+                            id = gameStatus.status ?: R.string.error,
+                            gameStatus.player as String
+                        )
+                    } else {
+                        stringResource(id = gameStatus.status ?: R.string.error)
+                    }
                     Spacer(modifier = Modifier.height(32.dp))
                     Text(
                         text = gameStatusStr,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        color = Accent2,
+                        color = Accent1,
                         //maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -321,7 +261,7 @@ fun EndGameScreen(
                     if (gameStatus !is GameStatus.Finished) {
                         Button(
                             onClick = { changeTryAgainStatus() },
-                            colors = ButtonDefaults.buttonColors(containerColor = Accent2)
+                            colors = ButtonDefaults.buttonColors(containerColor = Accent1)
                         ) {
                             Text(
                                 text = stringResource(id = R.string.rematch),
@@ -345,7 +285,7 @@ fun EndGameScreen(
                     }
                     Button(
                         onClick = { navigateToHome() },
-                        colors = ButtonDefaults.buttonColors(containerColor = Accent3)
+                        colors = ButtonDefaults.buttonColors(containerColor = Accent2)
                     ) {
                         Text(
                             text = stringResource(id = R.string.back_home),
@@ -359,60 +299,6 @@ fun EndGameScreen(
     }
 }
 
-@Composable
-fun TableSlot(playerType: PlayerType, angle: Float, onItemSelected: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .padding(12.dp)
-            .size(64.dp)
-            .border(BorderStroke(2.dp, Color.Black))
-            .clickable { onItemSelected() }
-            .clip(RoundedCornerShape(25))
-            .gradientBackground(
-                colors = arrayOf(
-                    0.2f to Color.Transparent,
-                    1f to Color(0x83990101)
-                ),
-                angle = angle
-            )
-            /*.background(
-                Brush.linearGradient(
-                    colorStops = arrayOf(
-                        0.2f to Color.Transparent,
-                        1f to Color(0x83990101)
-                    ),
-                    //start = Offset(0f, 0f),
-                    //end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-                    //start = Offset(Float.POSITIVE_INFINITY, 0f),
-                    //end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-                    //start = Offset(Float.POSITIVE_INFINITY, 0f),
-                    //end = Offset(0f, Float.POSITIVE_INFINITY),
-                    //start = Offset(Float.POSITIVE_INFINITY, 0f),
-                    //end = Offset(0f, 0f),
-                    //start = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-                    //end = Offset(0f, 0f),
-                    //start = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-                    //end = Offset(Float.POSITIVE_INFINITY, 0f),
-                    //start = Offset(0f, Float.POSITIVE_INFINITY),
-                    //end = Offset(Float.POSITIVE_INFINITY, 0f),
-                    //start = Offset(0f, 0f),
-                    //end = Offset(Float.POSITIVE_INFINITY, 0f),
-                )
-            )*/,
-
-        contentAlignment = Alignment.Center
-    ) {
-        AnimatedContent(targetState = playerType.symbol, label = "") {
-            Text(
-                text = it,
-                color = if (playerType is PlayerType.FirstPlayer) Orange2 else Orange1,
-                fontSize = 22.sp
-            )
-        }
-    }
-}
-
-//------------------------------------------------------------------
 @Composable
 fun TicTacToeBoard(
     board: List<BoardCellModel>, // El tablero representado como una lista de listas ('X', 'O', ' ')
@@ -453,12 +339,10 @@ fun TicTacToeBoard(
                         x = (col * 100).dp,
                         y = (row * 100).dp
                     ) // Ajustar la posición de cada símbolo
-                    //.border(BorderStroke(2.dp, Color.Black))
-                    //.clip(RoundedCornerShape(25))
                     .gradientBackground(
                         colors = arrayOf(
                             0.3f to Color.Transparent,
-                            1f to Accent3
+                            1f to ColorBoard
                             //1f to Color(0x83990101)
                         ),
                         angle = gradientDegList[index]
@@ -469,114 +353,52 @@ fun TicTacToeBoard(
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyLarge.copy(fontSize = 48.sp),
-                        color = if (playerType is PlayerType.FirstPlayer) Color.Red else Color.Blue
+                        color = if (playerType is PlayerType.FirstPlayer) Accent1 else Accent2
+                    )
+                }
+            }
+            // Dibujar el tablero con líneas
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val boardSize = size.minDimension
+                val cellSize = boardSize / 3
+
+                // Dibujar las líneas horizontales
+                for (i in 1..2) {
+                    drawLine(
+                        color = Color.Black,
+                        start = Offset(10f, i * cellSize),
+                        end = Offset(boardSize - 10f, i * cellSize),
+                        strokeWidth = 24f,
+                        cap = StrokeCap.Round
                     )
                 }
 
-                /*Box(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .size(64.dp)
-                        .border(BorderStroke(2.dp, Accent))
-                        .clickable { onItemSelected() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    AnimatedContent(targetState = playerType.symbol, label = "") {
-                        Text(
-                            text = it,
-                            color = if (playerType is PlayerType.FirstPlayer) Orange2 else Orange1,
-                            fontSize = 22.sp
-                        )
-                    }
-                }*/
-
-                /*Text(
-                    text = symbol.toString(),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 48.sp),
-                    color = if (symbol == "X") Color.Red else Color.Blue
-                )*/
-            }
-        // Dibujar el tablero con líneas
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val boardSize = size.minDimension
-            val cellSize = boardSize / 3
-
-            // Dibujar las líneas horizontales
-            for (i in 1..2) {
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(10f, i * cellSize),
-                    end = Offset(boardSize-10f, i * cellSize),
-                    strokeWidth = 24f,
-                    cap = StrokeCap.Round
-                )
-            }
-
-            // Dibujar las líneas verticales
-            for (i in 1..2) {
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(i * cellSize, 10f),
-                    end = Offset(i * cellSize, boardSize-10f),
-                    strokeWidth = 24f,
-                    cap = StrokeCap.Round
-                )
-            }
-        }
-
-        /*// Colocar los símbolos "X" o "O" en el lugar adecuado
-        for (row in 0 until 3) {
-            for (col in 0 until 3) {
-                val symbol = board[row][col]
-                if (symbol != ' ') {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp) // Tamaño de cada celda
-                            .align(Alignment.TopStart)
-                            .offset(x = (col * 100).dp, y = (row * 100).dp), // Ajustar la posición de cada símbolo
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = symbol.toString(),
-                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 48.sp),
-                            color = if (symbol == 'X') Color.Red else Color.Blue
-                        )
-                    }
+                // Dibujar las líneas verticales
+                for (i in 1..2) {
+                    drawLine(
+                        color = Color.Black,
+                        start = Offset(i * cellSize, 10f),
+                        end = Offset(i * cellSize, boardSize - 10f),
+                        strokeWidth = 24f,
+                        cap = StrokeCap.Round
+                    )
                 }
             }
-        }*/
-            //}
         }
     }
 }
-
-/*@Preview
-@Composable
-fun PreviewTicTacToeBoard() {
-    *//*val board = listOf(
-        listOf('X', 'O', ' '),
-        listOf(' ', 'X', 'O'),
-        listOf('O', ' ', 'X')
-    )*//*
-
-    val board = listOf("X", "O", "O", " ", "X", "O", "O", " ", "X")
-
-    TicTacToeBoard(board) { index ->
-        Log.i("adhrox", "Click en la celda $index")
-    }
-}*/
-//------------------------------------------------------------------
 
 fun Modifier.gradientBackground(colors: Array<Pair<Float, Color>>, angle: Float?) = this.then(
     Modifier.drawBehind {
 
         if (angle != null) {
             val angleRad = angle / 180f * PI
-            val x = kotlin.math.cos(angleRad).toFloat() //Fractional x
-            val y = kotlin.math.sin(angleRad).toFloat() //Fractional y
+            val x = kotlin.math.cos(angleRad).toFloat()
+            val y = kotlin.math.sin(angleRad).toFloat()
 
-            val radius:Float = kotlin.math.sqrt(
-                ((size.width.pow(2) + size.height.pow(2))) / 2f)
+            val radius: Float = kotlin.math.sqrt(
+                ((size.width.pow(2) + size.height.pow(2))) / 2f
+            )
             val offset = center + Offset(x * radius, y * radius)
 
             val exactOffset = Offset(

@@ -1,28 +1,22 @@
 package com.adhrox.tri_xo.ui.userdetail
 
+import android.content.Context
 import android.graphics.Paint
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,26 +33,22 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.content.res.ResourcesCompat
 import com.adhrox.tri_xo.R
 import com.adhrox.tri_xo.domain.model.UserModel
-import com.adhrox.tri_xo.ui.home.GameState
-import com.adhrox.tri_xo.ui.home.HomeViewModel
-import com.adhrox.tri_xo.ui.theme.Accent
-import com.adhrox.tri_xo.ui.theme.Accent3
-import com.adhrox.tri_xo.ui.theme.Background
-import com.adhrox.tri_xo.ui.theme.BlueLink
+import com.adhrox.tri_xo.ui.theme.Accent1
+import com.adhrox.tri_xo.ui.theme.Accent2
+import com.adhrox.tri_xo.ui.theme.CustomTypography
 import com.adhrox.tri_xo.ui.theme.MainColorBackground
-import com.adhrox.tri_xo.ui.theme.Orange1
-import com.adhrox.tri_xo.ui.theme.Orange2
 import kotlin.math.PI
 import kotlin.math.atan2
 
@@ -76,6 +66,7 @@ fun UserDetailScreen(
         //verticalArrangement = Arrangement.spacedBy(30.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
+        val context = LocalContext.current
         Header(userInfo.userName, userInfo.email)
         Box(
             modifier = Modifier
@@ -84,9 +75,10 @@ fun UserDetailScreen(
             PieChart(
                 modifier = Modifier
                     .size(500.dp),
+                context = context,
                 input = listOf(
                     PieChartItem(
-                        color = Orange1,
+                        color = Accent1,
                         value = userInfo.gamesInfo["win"]!!,
                         description = stringResource(id = R.string.win_stat)
                     ),
@@ -96,7 +88,7 @@ fun UserDetailScreen(
                         description = stringResource(id = R.string.tie_stat)
                     ),
                     PieChartItem(
-                        color = BlueLink,
+                        color = Accent2,
                         value = userInfo.gamesInfo["lose"]!!,
                         description = stringResource(id = R.string.lose_stat)
                     )
@@ -114,7 +106,7 @@ fun Header(userName: String, userEmail: String){
             .padding(top = 24.dp)
             .size(165.dp)
             .clip(RoundedCornerShape(50))
-            .border(2.dp, Accent3, RoundedCornerShape(50)),
+            .border(2.dp, Accent2, RoundedCornerShape(50)),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -143,6 +135,7 @@ fun Header(userName: String, userEmail: String){
 @Composable
 fun PieChart(
     modifier: Modifier = Modifier,
+    context: Context,
     radius:Float = 250f,
     innerRadius:Float = 100f,
     transparentWidth:Float = 25f,
@@ -298,6 +291,7 @@ fun PieChart(
                                         textAlign = Paint.Align.CENTER
                                         color = Color.White.toArgb()
                                         isFakeBoldText = true
+                                        typeface = ResourcesCompat.getFont(context, R.font.tomorrow_regular)
                                     }
                                 )
                             }

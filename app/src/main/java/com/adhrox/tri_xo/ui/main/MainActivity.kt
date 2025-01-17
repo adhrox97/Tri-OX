@@ -40,43 +40,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    /*override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            hideSystemUI()
-        }
-    }
-    private fun hideSystemUI(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            window.insetsController?.let { controller ->
-                controller.hide(android.view.WindowInsets.Type.systemBars())
-                controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    )
-        }
-    }*/
 }
 
 @Composable
 fun BackgroundContainer(content: @Composable () -> Unit) {
-    /*Box(modifier = Modifier.fillMaxSize()){
-        Image(
-            painter = painterResource(id = R.drawable.bg_app1),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.matchParentSize()
-        )
-        content()
-    }*/
-
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -93,12 +60,6 @@ fun BackgroundContainer(content: @Composable () -> Unit) {
                 )
             )
         )
-        /*Image(
-            painter = painterResource(id = R.drawable.bg_app1),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize()
-        )*/
         content()
     }
 }

@@ -2,8 +2,6 @@ package com.adhrox.tri_xo.ui.signup
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,11 +20,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,23 +34,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adhrox.tri_xo.R
+import com.adhrox.tri_xo.ui.theme.Accent1
 import com.adhrox.tri_xo.ui.theme.Accent2
-import com.adhrox.tri_xo.ui.theme.Accent3
-import com.adhrox.tri_xo.ui.theme.Background
 import com.adhrox.tri_xo.ui.theme.BgText2
-import com.adhrox.tri_xo.ui.theme.Orange1
-import com.adhrox.tri_xo.ui.theme.Orange2
+import com.adhrox.tri_xo.ui.theme.MainColorBackground
 
 @Composable
 fun SignUpScreen(
@@ -69,24 +61,6 @@ fun SignUpScreen(
 
     val uiStatus: AddNewUser by signUpViewModel.uiState.collectAsState()
 
-    /*val view = LocalView.current
-
-    DisposableEffect(view) {
-        ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
-            val isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
-            val controller = ViewCompat.getWindowInsetsController(view)
-            if (isKeyboardVisible) {
-                controller?.show(WindowInsetsCompat.Type.navigationBars())
-            } else {
-                controller?.hide(WindowInsetsCompat.Type.navigationBars())
-            }
-            insets
-        }
-        onDispose {
-            ViewCompat.setOnApplyWindowInsetsListener(view, null)
-        }
-    }*/
-
     uiStatus.error?.let {
         toastMessage(LocalContext.current, stringResource(id = it))
         signUpViewModel.resetErrorStatus()
@@ -98,16 +72,6 @@ fun SignUpScreen(
             //.background(Background)
             .padding(12.dp)
     ) {
-        /*IconButton(
-            modifier = Modifier.padding(top = 20.dp),
-            onClick = { }
-        ) {
-            Image(
-                modifier = Modifier.size(48.dp),
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = ""
-            )
-        }*/
         Spacer(modifier = Modifier.height(84.dp))
         Column(
             modifier = Modifier
@@ -145,7 +109,7 @@ fun SignUpScreen(
                 Text(
                     text = stringResource(id = R.string.username_symbols_error),
                     //text = "El Nombre de usuario no debe contener los simbolos \"\\\" ó \"-\" ó \":\" ó espacios",
-                    color = Accent3,
+                    color = Accent2,
                     fontWeight = FontWeight.Light
                 )
             }
@@ -181,7 +145,7 @@ fun SignUpScreen(
             if (!uiStatus.isPasswordMatch){
                 Text(
                     text = stringResource(id = R.string.password_not_match_error),
-                    color = Accent3,
+                    color = Accent2,
                     fontWeight = FontWeight.Light
                 )
             }
@@ -209,8 +173,8 @@ fun SignUpScreen(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
                 modifier = Modifier.size(42.dp),
-                trackColor = Orange1,
-                color = Orange2,
+                trackColor = MainColorBackground,
+                color = Accent1,
                 strokeWidth = 6.dp
             )
         }
@@ -239,7 +203,7 @@ fun OutlinedTextForm(
             focusedLabelColor = Color.White,
             unfocusedLabelColor = Color.White,
             unfocusedBorderColor = Color.White,
-            focusedBorderColor = Accent2
+            focusedBorderColor = Accent1
         )
     )
 }
